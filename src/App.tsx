@@ -2,6 +2,8 @@ import { useState } from 'react';
 import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
+import { mapXmiToIR } from './utils/umlMapper';
+import { type XmiJsonData } from './types/xmiJson';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -13,17 +15,17 @@ function App() {
    */
   const handleFileLoaded = (xmlContent: string) => {
     setError(""); 
-    const rawData = parseXmlToAny(xmlContent);
+    const rawData = parseXmlToAny(xmlContent) as XmiJsonData;
     logger.log("JSON parsed from the uploaded XMI file:", rawData);
 
     if (rawData && rawData["uml:Model"]) {
-      /* TODO hier wird geschaut ob das element uml:Model existiert, da es das Hauptelement in einem XMI-Dokument ist.
-      Mann könnte einen allgemeinen check einbauen der prüft ob das Dokument valide ist. Vlt später machen
-      Da nicht jedes XMI-Dokument das selbe format haben muss
-      */
       const name = rawData["uml:Model"].name || "Unbenanntes Modell";
       setModelName(name);
       logger.log("These are the elements:", rawData["uml:Model"].packagedElement);
+      
+      // Transform the raw JSON into our clean UML IR graph format
+      const mappedIR = mapXmiToIR(rawData);
+      logger.log("Mapped UML Internal Representation (IR):", mappedIR);
     }
   };
 
