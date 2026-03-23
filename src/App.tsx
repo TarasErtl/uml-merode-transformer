@@ -4,10 +4,12 @@ import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
 import { mapXmiToIR } from './utils/umlMapper';
 import { type XmiJsonData } from './types/xmiJson';
+import { type UMLIR } from './types/uml';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
 
   /**
    * Proccesses the content of the uploaded file, passed to this callback by the FilePicker component.
@@ -26,6 +28,7 @@ function App() {
       // Transform the raw JSON into our clean UML IR graph format
       const mappedIR = mapXmiToIR(rawData);
       logger.log("Mapped UML Internal Representation (IR):", mappedIR);
+      setUmlIR(mappedIR);
     }
   };
 
@@ -37,19 +40,22 @@ function App() {
   const handleFileError = (errorMessage: string) => {
     setModelName("");
     setError(errorMessage);
+    setUmlIR(null);
     logger.error(errorMessage);
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '40px auto', fontFamily: 'sans-serif' }}>
-      <h1>UML to MERODE Transformer</h1>
-      <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
-      {modelName && (
-        <div style={{ marginTop: '20px' }}>
-          <strong>Modell geladen:</strong> {modelName}
-        </div>
-      )}
-      {error && <div style={{ marginTop: '20px', color: 'red' }}>{error}</div>}
+    <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif', padding: '20px', boxSizing: 'border-box', overflow: 'hidden' }}>
+      <div style={{ flexShrink: 0, marginBottom: '20px' }}>
+        <h1 style={{ marginTop: 0 }}>UML to MERODE Transformer</h1>
+        <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
+        {modelName && (
+          <div style={{ marginTop: '10px' }}>
+            <strong>Modell geladen:</strong> {modelName}
+          </div>
+        )}
+        {error && <div style={{ marginTop: '10px', color: 'red' }}>{error}</div>}
+      </div>
     </div>
   );
 }
