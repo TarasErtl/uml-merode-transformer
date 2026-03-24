@@ -29,9 +29,10 @@ export interface XmiJsonOwnedAttribute extends XmiJsonBaseElement {
   visibility?: 'public' | 'private' | 'protected';
   isUnique?: boolean;
   association?: string;
+  aggregation?: 'none' | 'shared' | 'composite';
   lowerValue?: XmiJsonMultiplicityValue;
   upperValue?: XmiJsonMultiplicityValue;
-  _parentClassId?: string; // Internally added during mapping
+  _parentClassId?: string; // Internal property to link back to the parent class ID for association mapping
 }
 
 /**

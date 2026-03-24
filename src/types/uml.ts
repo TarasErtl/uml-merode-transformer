@@ -32,7 +32,7 @@ export interface UMLClass extends UMLBaseElement {
  */
 export interface UMLAssociation extends UMLBaseElement {
   readonly type: 'uml:Association';
-  ends: readonly [UMLAssociationEnd, UMLAssociationEnd];
+  ends: readonly UMLAssociationEnd[];
 }
 
 /**
@@ -45,13 +45,14 @@ export interface UMLAttribute extends UMLBaseElement {
 
 /**
  * Describes one end of a UML Association, including its target class,
- * role, and multiplicity.
+ * role, multiplicity, and optionally the aggregation kind.
  */
 export interface UMLAssociationEnd {
   readonly targetClassId: string;
   readonly roleName?: string;
   readonly lowerBound: UMLLowerBound;
   readonly upperBound: UMLUpperBound;
+  readonly aggregation?: UMLAggregationKind;
 }
 
 /**
@@ -79,3 +80,13 @@ export const UMLUpperBound = {
   Unlimited: "*",
 } as const;
 export type UMLUpperBound = (typeof UMLUpperBound)[keyof typeof UMLUpperBound];
+
+/**
+ * Values for the aggregation kind of a UML association end.
+ */
+export const UMLAggregationKind = {
+  None: "none",
+  Shared: "shared",
+  Composite: "composite",
+} as const;
+export type UMLAggregationKind = (typeof UMLAggregationKind)[keyof typeof UMLAggregationKind];
