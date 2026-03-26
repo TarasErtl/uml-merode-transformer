@@ -2,14 +2,17 @@ import { useState } from 'react';
 import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
-import { mapXmiToIR } from './utils/umlMapper';
+import { mapXmiToIR } from './utils/json2umlMapper';
+import { mapUmlToMerode } from './utils/uml2merodeMapper';
 import { type XmiJsonData } from './types/xmiJson';
 import { type UMLIR } from './types/uml';
+import { type MerodeIR } from './types/merode';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
+  const [merodeIR, setMerodeIR] = useState<MerodeIR | null>(null);
 
   /**
    * Proccesses the content of the uploaded file, passed to this callback by the FilePicker component.
@@ -29,6 +32,18 @@ function App() {
       const mappedIR = mapXmiToIR(rawData);
       logger.log("Mapped UML Internal Representation (IR):", mappedIR);
       setUmlIR(mappedIR);
+
+      if (mappedIR === null) {
+        const errorMessage = "Fehler bei der Verarbeitung der XMI-Daten. Bitte überprüfen Sie die Struktur der Datei.";
+        setError(errorMessage);
+        logger.error(errorMessage);
+        return;
+      }  
+       
+      //Transform the UML IR into a MERODE IR
+      const merodeModel = mapUmlToMerode(mappedIR);
+      logger.log("Mapped MERODE Internal Representation (IR):", merodeModel);
+      setMerodeIR(merodeModel);
     }
   };
 
@@ -41,6 +56,7 @@ function App() {
     setModelName("");
     setError(errorMessage);
     setUmlIR(null);
+    setMerodeIR(null);
     logger.error(errorMessage);
   };
 

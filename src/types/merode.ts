@@ -15,16 +15,18 @@ export interface MerodeModel extends MerodeBaseElement {
 
 /**
  * Represents a generic element,,every element should have and id and a name
+ * has the status of the element during the transformation process
  */
 export interface MerodeBaseElement {
   readonly id: string;
   readonly name?: string;
+  readonly status?: MerodeElementStatus;
 }
 
 /**
  * A union type for Classes and Associations
  */
-export type MerodeModelElement = MerodeClass | MerodeAssociation;
+export type MerodeModelElement = MerodeClass | MerodeAssociation
 
 /**
  * Represents a MERODE Class, with its attributes and associations
@@ -65,3 +67,12 @@ export const MerodeMultiplicity = {
   OneToOne: "1..1"
 } as const;
 export type MerodeMultiplicity = (typeof MerodeMultiplicity)[keyof typeof MerodeMultiplicity];
+
+/**
+ * Values for the state of a MERODE model element during the transformation process.
+ */
+export const MerodeElementStatus = {
+  Pending: "pending",
+  Confirmed: "confirmed"
+} as const;
+export type MerodeElementStatus = (typeof MerodeElementStatus)[keyof typeof MerodeElementStatus];
