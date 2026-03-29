@@ -11,15 +11,69 @@ import {
   type UMLPackagedElement,
 } from '../types/uml';
 import {
-    MerodeElementStatus,
   type MerodeIR,
   type MerodeClass,
   type MerodeAttribute,
   type MerodeAssociation,
   MerodeMultiplicity,
+  type MerodeBaseElement,
+  type MerodeModelElement,
 } from '../types/merode';
+import type { BinaryAssociationProposal, Proposal, UnaryAssociationProposal } from '../types/proposals';
+import type { Decision, UnaryAssociationDecision } from '../types/decisions';
 
-// Hilfsfunktion zur Übersetzung der Multiplizitäten
+
+/**
+ * Helper Class for creating MERODE elements
+ * Creates a new MERODE class and adds it to the MERODE IR
+ * @param merodeIR the Map of the MerodeModelElements, to which the new class should be added
+ * @param id the id of the new class
+ * @param name the name of the new class
+ * @param attributes the attributes of the new class
+ * @param associationIds the ids of the associations of the new class
+ */
+const createMerodeClass = (merodeIR: Map<string, MerodeBaseElement>,id: string, name: string, attributes: MerodeAttribute[], associationIds: string[]) => {
+  const merodeClass: MerodeClass = {  
+    id: id,
+    type: 'merode:Class',
+    name: name,
+    attributes: attributes,
+    associationIds: associationIds,
+  };
+  merodeIR.set(id, merodeClass);
+
+}
+
+/**
+ * Helper Class for creating MERODE associations
+ * Creates a new MERODE association and adds it to the MERODE IR
+ * @param merodeIR the Map of the MerodeModelElements, to which the new association should be added
+ * @param id the id of the new association
+ * @param name the name of the new association
+ * @param masterClassId the id of the master class of the new association
+ * @param dependentClassId the id of the dependent class of the new association
+ * @param multiplicity the multiplicity of the dependent class in the new association
+ * @param roleName the role name of the dependent class in the new association
+ */
+const createMerodeAssociation = (merodeIR: Map<string, MerodeBaseElement>, id: string, name: string, masterClassId: string, dependentClassId: string, multiplicity: MerodeMultiplicity, roleName?: string) => {
+  const merodeAssociation: MerodeAssociation = {
+    id: id,
+    type: 'merode:Association',
+    name: name,
+    masterClassId: masterClassId,
+    dependentClassId: dependentClassId,
+    multiplicity: multiplicity,
+    roleName: roleName,
+  };
+  merodeIR.set(id, merodeAssociation);
+}
+
+/**
+ * This is a Helper function to map the multiplicity of a UML association end to the multiplicity of a MERODE association
+ * @param lower bound of the UML association end
+ * @param upper bound of the UML association end
+ * @returns MerodeMultiplicity type of the multiplicity of the dependent class in a MERODE association
+ */
 const mapToMerodeMultiplicity = (lower: string, upper: string): MerodeMultiplicity => {
   if (lower === UMLLowerBound.Zero && upper === UMLUpperBound.Unlimited) return MerodeMultiplicity.ZeroToMany;
   if (lower === UMLLowerBound.One && upper === UMLUpperBound.Unlimited) return MerodeMultiplicity.OneToMany;
@@ -27,103 +81,75 @@ const mapToMerodeMultiplicity = (lower: string, upper: string): MerodeMultiplici
   return MerodeMultiplicity.OneToOne; // default
 };
 
-const mapClass = (umlClass: UMLClass, merodeClasses: MerodeClass[]) => {
-  //All the Classes in the UML are Classes in MERODE, that means their don't need confirmation form the user
-  const merodeClass: MerodeClass = {  
-    id: umlClass.id,
-    type: 'merode:Class',
-    name: umlClass.name,
-    attributes: umlClass.attributes.map(attr => ({
-      id: attr.id,
-      name: attr.name,
-      type: 'merode:Attribute'
-    })),
-    associationIds: umlClass.associationIds,
-    status: MerodeElementStatus.Confirmed
-  };
-  merodeClasses.push(merodeClass); 
-};
-
 /**
- * maps a unary association in UML to a MERODE class and two associations, that connect the new class with the original class of the unary association
- * and sets the status of the new elements to pending
- * @param umlAssoc 
- * @param merodeClasses 
- * @param merodeAssociations 
+ * maps a unary association by:
+ * creating a new class for the unary association, creating two new associations between the new class and the original class,
+ * the user is asked to choose the name of the new class and the role names of the new associations in a proposal,
+ * if there is no decision for the unary association yet
+ * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
+ * @param umlAssoc the UML association that should be mapped
+ * @param decisions the Map of the decisions, to check if there is already a decision for the unary association
+ * @return a UnaryAssociationProposal if there is no decision for the unary association yet, otherwise null
  */
-
-const mapUnaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass[], merodeAssociations: MerodeAssociation[]) => {
+const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): UnaryAssociationProposal | null=> {
   const [end1, end2] = umlAssoc.ends;
-  const originalClassId = end1.targetClassId;
-  //TODO hier später den Namensvorschlag mit AI vorschlagen
-  const newClassId = `${umlAssoc.id}_unary_class`;
-  const newAssoc1Id = `${umlAssoc.id}_assoc1`;
-  const newAssoc2Id = `${umlAssoc.id}_assoc2`;
+  let classId: string = `${umlAssoc.id}_unary_Class`;
+  let assoc1Id: string = `${umlAssoc.id}_assoc1`;
+  let assoc2Id: string = `${umlAssoc.id}_assoc2`;
+  let className: string = '';
+  let assocName1: string = end1.roleName ?? '';
+  let assocName2: string = end2.roleName ?? '';
 
-  //Create a nem MERODE class for the unary association
-  const newMerodeClass: MerodeClass = {
-    id: newClassId,
-    type: 'merode:Class',
-    name: umlAssoc.id? `${umlAssoc.id}_unary_Class` : 'UnaryAssociationClass',
-    attributes: [],
-    associationIds: [newAssoc1Id, newAssoc2Id],
-    status: MerodeElementStatus.Pending
-  };
-  merodeClasses.push(newMerodeClass);
-
-  //Create two MERODE associations to connect the new class with the original class of the unary association
-  const merodeAssoc1: MerodeAssociation = {
-    id: newAssoc1Id,
-    type: 'merode:Association',
-    name: umlAssoc.name ? `${umlAssoc.name}_1` : undefined,
-    masterClassId: originalClassId,
-    dependentClassId: newClassId,
-    multiplicity: mapToMerodeMultiplicity(end1.lowerBound, end1.upperBound),
-    roleName: end1.roleName,
-    status: MerodeElementStatus.Pending
-  };
-  
-  const merodeAssoc2: MerodeAssociation = {
-    id: newAssoc2Id,
-    type: 'merode:Association',
-    name: umlAssoc.name ? `${umlAssoc.name}_2` : undefined,
-    masterClassId: originalClassId,
-    dependentClassId: newClassId,
-    multiplicity: mapToMerodeMultiplicity(end2.lowerBound, end2.upperBound),
-    roleName: end2.roleName,
-    status: MerodeElementStatus.Pending
-  };
-  merodeAssociations.push(merodeAssoc1, merodeAssoc2);
-
-  //Delete the original unary association from the original class and add the two new associations
-  const targetClass = merodeClasses.find(c => c.id === originalClassId);
-  if (targetClass) {
-    // Readonly umgehen, um die alte Assoziation durch die zwei neuen zu ersetzen
-    (targetClass as any).associationIds = [
-      ...targetClass.associationIds.filter(id => id !== umlAssoc.id),
-      newAssoc1Id,
-      newAssoc2Id
-    ];
+  if (decisions.has(umlAssoc.id)) {
+      className = (decisions.get(umlAssoc.id) as UnaryAssociationDecision).chosenClassName;
+      assocName1 = (decisions.get(umlAssoc.id) as UnaryAssociationDecision).chosenRole1Name;
+      assocName2 = (decisions.get(umlAssoc.id) as UnaryAssociationDecision).chosenRole2Name;
   }
+
+  //Create the classes and the associations
+  createMerodeClass(merodeIR
+                    , classId
+                    , className ?? `${umlAssoc.name}_Class`
+                    , []
+                    , [assoc1Id, assoc2Id]);
+  createMerodeAssociation(merodeIR
+                          , assoc1Id
+                          , assocName1 ??  assoc1Id
+                          , end1.targetClassId
+                          , classId
+                          , mapToMerodeMultiplicity(end1.lowerBound, end1.upperBound)
+                          , assocName1);
+  createMerodeAssociation(merodeIR
+                          , assoc2Id
+                          , assocName2 ?? assoc2Id
+                          , end1.targetClassId
+                          , classId
+                          , mapToMerodeMultiplicity(end2.lowerBound, end2.upperBound)
+                          , assocName2);
+
+  //delete the associationId of the original class and add the new associations
+  let originalClass: MerodeClass = merodeIR.get(end1.targetClassId) as MerodeClass;
+  originalClass.associationIds = [...originalClass.associationIds.filter(id => id !== umlAssoc.id) as string[]
+                                 , assoc1Id
+                                 , assoc2Id];
+
+
+  //if the object has been created based on a decision, no proposal is needed, 
+  // otherwise create a proposal for the user to choose the names of the new class and associations                          
+  if (decisions.has(umlAssoc.id)) {
+    return null;
+  }
+  const retProposal: UnaryAssociationProposal = {
+        id: umlAssoc.id,
+        proposedClassName: classId,
+        proposedRole1Name: assocName1,
+        proposedRole2Name: assocName2     
+      };
+  return retProposal;                      
 };
 
-const mapBinaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass[], merodeAssociations: MerodeAssociation[]) => {
-  const [end1, end2] = umlAssoc.ends;
+const mapBinaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: Map<string, MerodeClass>, merodeAssociations: Map<string, MerodeAssociation>, decisions: Map<string, Decision>) => {
 
-  // Default mapping proposal: Assume an existence dependency exists.
-  // We arbitrarily assign end1 as the master and end2 as the dependent.
-  const merodeAssoc: MerodeAssociation = {
-    id: umlAssoc.id,
-    type: 'merode:Association',
-    name: umlAssoc.name,
-    masterClassId: end1.targetClassId,
-    dependentClassId: end2.targetClassId,
-    multiplicity: mapToMerodeMultiplicity(end2.lowerBound, end2.upperBound),
-    roleName: end2.roleName,
-    status: MerodeElementStatus.Pending
-  };
-
-  merodeAssociations.push(merodeAssoc);
 };
 
 const mapAggregationAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass[], merodeAssociations: MerodeAssociation[]) => {
@@ -134,23 +160,24 @@ const mapNaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass
   // Case n-ary Association (TODO)
 };
 
-export const mapUmlToMerode = (umlIR: UMLIR): MerodeIR | null => {
+export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, setProposals: React.Dispatch<React.SetStateAction<Proposal[]>>): MerodeIR | null => {
    if (!umlIR || !umlIR.model) return null;
     
    const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
-   const merodeClasses: MerodeClass[] = [];
-   const merodeAssociations: MerodeAssociation[] = [];
+   const merodeIR: Map<string, MerodeModelElement> = new Map();
+   const newProposals: Map<string, Proposal> = new Map();
 
    //First map all the classes, because every class in UML is also a class in MERODE
    umlPackagedElements.forEach(el => {
         if (el.type === 'uml:Class') {
-            mapClass(el as UMLClass, merodeClasses);
+            createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], el.associationIds as string[]);
         }
    });
 
    //Map all the associations, depending on their type (unary, binary, n-ary, aggregation)
    umlPackagedElements.forEach(el => {
         if (el.type === 'uml:Association') {
+            let proposal: Proposal | null = null;
             const umlAssoc = el as UMLAssociation;
 
             //Unary, Binary, Aggregation Association
@@ -162,26 +189,32 @@ export const mapUmlToMerode = (umlIR: UMLIR): MerodeIR | null => {
                                       (end2.aggregation && end2.aggregation !== UMLAggregationKind.None);
 
                 if (isUnary) {
-                    mapUnaryAssociation(umlAssoc, merodeClasses, merodeAssociations);
+                  proposal = mapUnaryAssociation(merodeIR, umlAssoc, decisions);
                 } else if (isAggregation) {
-                    mapAggregationAssociation(umlAssoc, merodeClasses, merodeAssociations);
+                    //proposal = mapAggregationAssociation(umlAssoc, merodeIR, decisions);
                 } else {
-                    mapBinaryAssociation(umlAssoc, merodeClasses, merodeAssociations);
+                  //proposal = mapBinaryAssociation(umlAssoc, merodeIR, decisions);
                 }
-            } 
+            }
             //N-ary Association
             else {
-                mapNaryAssociation(umlAssoc, merodeClasses, merodeAssociations);
+                //proposal = mapNaryAssociation(umlAssoc, merodeClasses, merodeAssociations);
+            }
+
+            if (proposal){
+              console.log("Generated proposal for association:", proposal);  
+              newProposals.set(proposal.id, proposal);
             }
         }
     });
 
+    setProposals(Array.from(newProposals.values())); 
     return {
         model: {
             id: umlIR.model.id,
             type: 'merode:Model',
             name: umlIR.model.name,
-            elements: [...merodeClasses, ...merodeAssociations]
+            elements: [...merodeIR.values()]
         }
     };
 }

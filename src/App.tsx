@@ -7,12 +7,15 @@ import { mapUmlToMerode } from './utils/uml2merodeMapper';
 import { type XmiJsonData } from './types/xmiJson';
 import { type UMLIR } from './types/uml';
 import { type MerodeIR } from './types/merode';
+import { type Proposal } from './types/proposals';
+import { type Decision } from './types/decisions';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
   const [merodeIR, setMerodeIR] = useState<MerodeIR | null>(null);
+  const [proposals, setProposals] = useState<Proposal[]>([]);
 
   /**
    * Proccesses the content of the uploaded file, passed to this callback by the FilePicker component.
@@ -40,8 +43,9 @@ function App() {
         return;
       }  
        
+      const decisions = new Map<string, Decision>(); // Hier sollten die tatsächlichen Entscheidungen geladen oder initialisiert werden
       //Transform the UML IR into a MERODE IR
-      const merodeModel = mapUmlToMerode(mappedIR);
+      const merodeModel = mapUmlToMerode(mappedIR, decisions, setProposals);
       logger.log("Mapped MERODE Internal Representation (IR):", merodeModel);
       setMerodeIR(merodeModel);
     }

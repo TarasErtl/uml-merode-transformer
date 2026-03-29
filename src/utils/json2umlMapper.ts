@@ -141,7 +141,7 @@ const processAssociations = (
         associations.push({
           id: el["xmi:id"],
           type: "uml:Association",
-          name: el.name,
+          name: el.name ?? "",
           ends
         });
       }
@@ -175,12 +175,12 @@ const processClasses = (
           id: attr["xmi:id"],
           name: attr.name,
           type: attr.type || "String",
-        }));
+        })) as UMLAttribute[];
 
       classes.push({
         id: el["xmi:id"],
         type: "uml:Class",
-        name: el.name,
+        name: el.name ?? "",
         attributes: dataAttributes,
         associationIds: Array.from(classAssocMap[el["xmi:id"]] || []).filter(Boolean)
       });
@@ -219,7 +219,7 @@ export const mapXmiToIR = (rawData: XmiJsonData): UMLIR | null => {
     model: {
       id: xmiModel["xmi:id"] || "model-root",
       type: "uml:Model",
-      name: xmiModel.name,
+      name: xmiModel.name ?? "",
       packagedElement: [...classes, ...associations]
     }
   };

@@ -60,7 +60,7 @@ export interface UMLAssociationEnd {
  */
 export interface UMLBaseElement {
   readonly id: string;
-  readonly name?: string;
+  readonly name: string;
 }
 
 /**

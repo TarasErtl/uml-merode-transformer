@@ -20,7 +20,6 @@ export interface MerodeModel extends MerodeBaseElement {
 export interface MerodeBaseElement {
   readonly id: string;
   readonly name?: string;
-  readonly status?: MerodeElementStatus;
 }
 
 /**
@@ -68,11 +67,3 @@ export const MerodeMultiplicity = {
 } as const;
 export type MerodeMultiplicity = (typeof MerodeMultiplicity)[keyof typeof MerodeMultiplicity];
 
-/**
- * Values for the state of a MERODE model element during the transformation process.
- */
-export const MerodeElementStatus = {
-  Pending: "pending",
-  Confirmed: "confirmed"
-} as const;
-export type MerodeElementStatus = (typeof MerodeElementStatus)[keyof typeof MerodeElementStatus];
