@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
@@ -6,16 +6,37 @@ import { mapXmiToIR } from './utils/json2umlMapper';
 import { mapUmlToMerode } from './utils/uml2merodeMapper';
 import { type XmiJsonData } from './types/xmiJson';
 import { type UMLIR } from './types/uml';
-import { type MerodeIR } from './types/merode';
-import { type Proposal } from './types/proposals';
-import { type Decision } from './types/decisions';
+import { type MerodeIR } from "./types/merode";
+import { type Proposal, type UnaryAssociationProposal, type BinaryAssociationProposal } from './types/proposals';
+import { type Decision, type UnaryAssociationDecision, type BinaryAssociationDecision } from './types/decisions';
+
+// Type guards to determine proposal type at runtime by checking for unique properties
+const isUnaryAssociationProposal = (p: Proposal): p is UnaryAssociationProposal => 'proposedClassName' in p;
+const isBinaryAssociationProposal = (p: Proposal): p is BinaryAssociationProposal => 'proposedExistenceDependency' in p;
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
+  const [error, setError] = useState<string>("");
   const [merodeIR, setMerodeIR] = useState<MerodeIR | null>(null);
   const [proposals, setProposals] = useState<Proposal[]>([]);
+  const [decisions, setDecisions] = useState<Map<string, Decision>>(new Map()); // New state for decisions
+
+  //recreates the function if umlIR or decisions change, which triggers the execution in useEffect
+  const reMapModels = useCallback(() => {
+    if (umlIR) {
+      const { merodeIR: newMerodeIR, proposals: newProposals } = mapUmlToMerode(umlIR, decisions);
+      setMerodeIR(newMerodeIR);
+      setProposals(newProposals);
+      console.log("Re-mapped MERODE IR:", newMerodeIR);
+      console.log("Generated Proposals based on current decisions:", newProposals);
+      console.log("Current decisions:", Array.from(decisions.entries()));
+    }
+  }, [umlIR, decisions]); // Depend on umlIR and decisions
+
+  useEffect(() => {
+    reMapModels();
+  }, [reMapModels]); // Re-run mapping when reMapModels changes
 
   /**
    * Proccesses the content of the uploaded file, passed to this callback by the FilePicker component.
@@ -35,19 +56,13 @@ function App() {
       const mappedIR = mapXmiToIR(rawData);
       logger.log("Mapped UML Internal Representation (IR):", mappedIR);
       setUmlIR(mappedIR);
+      setDecisions(new Map()); // Reset decisions when a new file is loaded
 
       if (mappedIR === null) {
         const errorMessage = "Fehler bei der Verarbeitung der XMI-Daten. Bitte überprüfen Sie die Struktur der Datei.";
         setError(errorMessage);
         logger.error(errorMessage);
-        return;
       }  
-       
-      const decisions = new Map<string, Decision>(); // Hier sollten die tatsächlichen Entscheidungen geladen oder initialisiert werden
-      //Transform the UML IR into a MERODE IR
-      const merodeModel = mapUmlToMerode(mappedIR, decisions, setProposals);
-      logger.log("Mapped MERODE Internal Representation (IR):", merodeModel);
-      setMerodeIR(merodeModel);
     }
   };
 
@@ -61,7 +76,59 @@ function App() {
     setError(errorMessage);
     setUmlIR(null);
     setMerodeIR(null);
+    setProposals([]);
+    setDecisions(new Map());
     logger.error(errorMessage);
+  };
+
+  /**
+   * handles the change of the proposal value by the user
+   * @param proposalId 
+   * @param key 
+   * @param value 
+   */
+  const handleProposalChange = (proposalId: string, key: string, value: string) => {
+    setProposals(prevProposals =>
+      prevProposals.map(p =>
+        p.id === proposalId ? { ...p, [key]: value } : p
+      )
+    );
+  };
+
+  const handleAcceptProposal = (proposal: Proposal) => {
+    // Convert the proposal to a decision based on its type
+    let newDecision: Decision | null = null;
+    
+    if (isUnaryAssociationProposal(proposal)) {
+      newDecision = {
+        id: proposal.id,
+        type: 'unaryAssociationDecision',
+        chosenClassName: proposal.proposedClassName,
+        chosenRole1Name: proposal.proposedRole1Name,
+        chosenRole2Name: proposal.proposedRole2Name,
+      } as UnaryAssociationDecision;
+    } else if (isBinaryAssociationProposal(proposal)) {
+      newDecision = {
+        id: proposal.id,
+        type: 'binaryAssociationDecision',
+        chosenExistenceDependency: proposal.proposedExistenceDependency,
+        chosenMasterClassId: proposal.proposedMasterClassId,
+        chosenDependentClassId: proposal.proposedDependentClassId,
+      } as BinaryAssociationDecision;
+    }
+    // Add more cases for other proposal types with `else if`
+    else {
+      console.warn(`Unknown proposal type for ID: ${proposal.id}`);
+    }
+
+    if (newDecision) {
+      setDecisions(prevDecisions => {
+        const updatedDecisions = new Map(prevDecisions);
+        updatedDecisions.set(newDecision!.id, newDecision!);
+        return updatedDecisions;
+      });
+      // The reMapModels useEffect will be triggered by the setDecisions call
+    }
   };
 
   return (
@@ -76,6 +143,62 @@ function App() {
         )}
         {error && <div style={{ marginTop: '10px', color: 'red' }}>{error}</div>}
       </div>
+      {proposals.length > 0 && ( // Überprüfen, ob Proposals vorhanden sind
+        <div style={{ flexShrink: 0, marginTop: '20px', padding: '15px', border: '1px solid #555', borderRadius: '8px', backgroundColor: '#1e1e1e', boxShadow: '0 4px 6px rgba(0,0,0,0.4)', overflowX: 'auto' }}>
+          <h2 style={{ marginTop: 0, marginBottom: '15px', color: '#f8f8f2' }}>Vorschläge zur Klärung:</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+            {proposals.map((proposal, index) => (
+              <div key={proposal.id} style={{
+                border: '1px solid #4A90E2',
+                borderRadius: '8px',
+                padding: '15px',
+                backgroundColor: '#2d2d2d',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                minWidth: '300px', // Mindestbreite für die Karte
+                color: '#f8f8f2'
+              }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#4A90E2' }}>Vorschlag {index + 1}</h3>
+                {Object.entries(proposal).map(([key, value]) => {
+                  if (key === 'id') return null;
+                  return (
+                    <div key={`${proposal.id}-${key}`} style={{ marginBottom: '8px' }}>
+                      <label htmlFor={`${proposal.id}-${key}`} style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{key}:</label>
+                      <input
+                        id={`${proposal.id}-${key}`}
+                        type="text"
+                        value={value as string}
+                        onChange={(e) => {
+                          handleProposalChange(proposal.id, key, e.target.value);
+                        }}
+                        style={{
+                          width: 'calc(100% - 10px)',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          border: '1px solid #555',
+                          backgroundColor: '#3c3c3c',
+                          color: '#f8f8f2'
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+                <button
+                  onClick={() => handleAcceptProposal(proposal)}
+                  style={{
+                    marginTop: '15px',
+                    padding: '10px 20px',
+                    backgroundColor: '#28a745', // Green color for accept
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    fontSize: '1em',
+                  }}>Vorschlag annehmen</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

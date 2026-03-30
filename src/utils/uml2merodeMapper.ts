@@ -19,7 +19,7 @@ import {
   type MerodeBaseElement,
   type MerodeModelElement,
 } from '../types/merode';
-import type { BinaryAssociationProposal, Proposal, UnaryAssociationProposal } from '../types/proposals';
+import type { Proposal, UnaryAssociationProposal } from '../types/proposals';
 import type { Decision, UnaryAssociationDecision } from '../types/decisions';
 
 
@@ -160,8 +160,10 @@ const mapNaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass
   // Case n-ary Association (TODO)
 };
 
-export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, setProposals: React.Dispatch<React.SetStateAction<Proposal[]>>): MerodeIR | null => {
-   if (!umlIR || !umlIR.model) return null;
+export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): { merodeIR: MerodeIR | null, proposals: Proposal[] } => {
+   if (!umlIR || !umlIR.model) {
+    return { merodeIR: null, proposals: [] };
+   }
     
    const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
    const merodeIR: Map<string, MerodeModelElement> = new Map();
@@ -208,13 +210,15 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, s
         }
     });
 
-    setProposals(Array.from(newProposals.values())); 
     return {
-        model: {
-            id: umlIR.model.id,
-            type: 'merode:Model',
-            name: umlIR.model.name,
-            elements: [...merodeIR.values()]
-        }
+        merodeIR: {
+            model: {
+                id: umlIR.model.id,
+                type: 'merode:Model',
+                name: umlIR.model.name,
+                elements: [...merodeIR.values()]
+            }
+        },
+        proposals: Array.from(newProposals.values())
     };
 }

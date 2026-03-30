@@ -1,15 +1,16 @@
 export interface Decision {
-    id: string;
+  id: string; // Corresponds to the proposal ID
+  type: string; // To differentiate between different decision types
 }
 
 export interface UnaryAssociationDecision extends Decision {
-    chosenClassName: string;
-    chosenRole1Name: string;
-    chosenRole2Name: string;
+  chosenClassName: string;
+  chosenRole1Name: string;
+  chosenRole2Name: string;
 }
 
 export interface BinaryAssociationDecision extends Decision {
-    existenceDependency: boolean;
-    masterClassId: string;
-    dependentClassId: string;
+  chosenExistenceDependency: boolean;
+  chosenMasterClassId: string;
+  chosenDependentClassId: string;
 }
