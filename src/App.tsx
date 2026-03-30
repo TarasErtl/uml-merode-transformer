@@ -7,12 +7,23 @@ import { mapUmlToMerode } from './utils/uml2merodeMapper';
 import { type XmiJsonData } from './types/xmiJson';
 import { type UMLIR } from './types/uml';
 import { type MerodeIR } from "./types/merode";
-import { type Proposal, type UnaryAssociationProposal, type BinaryAssociationProposal } from './types/proposals';
-import { type Decision, type UnaryAssociationDecision, type BinaryAssociationDecision } from './types/decisions';
+import { 
+  type Proposal, 
+  type UnaryAssociationProposal, 
+  type BinaryAssociationProposal, 
+  type BinaryAssociationExistenceDependentProposal, 
+  type BinaryAssociationNoExistenceDependencyProposal 
+} from './types/proposals';
+import { 
+  type Decision, 
+  type UnaryAssociationDecision, 
+  type BinaryAssociationExistenceDependentDecision, 
+  type BinaryAssociationNoExistenceDependencyDecision 
+} from './types/decisions';
 
 // Type guards to determine proposal type at runtime by checking for unique properties
-const isUnaryAssociationProposal = (p: Proposal): p is UnaryAssociationProposal => 'proposedClassName' in p;
 const isBinaryAssociationProposal = (p: Proposal): p is BinaryAssociationProposal => 'proposedExistenceDependency' in p;
+const isUnaryAssociationProposal = (p: Proposal): p is UnaryAssociationProposal => 'proposedClassName' in p && !isBinaryAssociationProposal(p);
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -108,13 +119,26 @@ function App() {
         chosenRole2Name: proposal.proposedRole2Name,
       } as UnaryAssociationDecision;
     } else if (isBinaryAssociationProposal(proposal)) {
-      newDecision = {
-        id: proposal.id,
-        type: 'binaryAssociationDecision',
-        chosenExistenceDependency: proposal.proposedExistenceDependency,
-        chosenMasterClassId: proposal.proposedMasterClassId,
-        chosenDependentClassId: proposal.proposedDependentClassId,
-      } as BinaryAssociationDecision;
+      if (proposal.proposedExistenceDependency) {
+        const p = proposal as BinaryAssociationExistenceDependentProposal;
+        newDecision = {
+          id: p.id,
+          type: 'binaryAssociationExistenceDependentDecision',
+          chosenExistenceDependency: true,
+          chosenMasterClassId: p.proposedMasterClassId,
+          chosenDependentClassId: p.proposedDependentClassId,
+        } as BinaryAssociationExistenceDependentDecision;
+      } else {
+        const p = proposal as BinaryAssociationNoExistenceDependencyProposal;
+        newDecision = {
+          id: p.id,
+          type: 'binaryAssociationNoExistenceDependencyDecision',
+          chosenExistenceDependency: false,
+          chosenClassName: p.proposedClassName,
+          chosenRole1Name: p.proposedRole1Name,
+          chosenRole2Name: p.proposedRole2Name,
+        } as BinaryAssociationNoExistenceDependencyDecision;
+      }
     }
     // Add more cases for other proposal types with `else if`
     else {

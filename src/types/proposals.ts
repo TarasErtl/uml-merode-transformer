@@ -1,5 +1,6 @@
 export interface Proposal {
   id: string;
+  message: string;
 }
 
 export interface UnaryAssociationProposal extends Proposal {
@@ -10,6 +11,15 @@ export interface UnaryAssociationProposal extends Proposal {
 
 export interface BinaryAssociationProposal extends Proposal {
     proposedExistenceDependency: boolean;
+}
+
+export interface BinaryAssociationExistenceDependentProposal extends BinaryAssociationProposal {
     proposedMasterClassId: string;
     proposedDependentClassId: string;
+}
+
+export interface BinaryAssociationNoExistenceDependencyProposal extends BinaryAssociationProposal {
+    proposedClassName: string;
+    proposedRole1Name?: string;
+    proposedRole2Name?: string;
 }

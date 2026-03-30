@@ -11,6 +11,15 @@ export interface UnaryAssociationDecision extends Decision {
 
 export interface BinaryAssociationDecision extends Decision {
   chosenExistenceDependency: boolean;
+}
+
+export interface BinaryAssociationExistenceDependentDecision extends BinaryAssociationDecision {
   chosenMasterClassId: string;
   chosenDependentClassId: string;
+}
+
+export interface BinaryAssociationNoExistenceDependencyDecision extends BinaryAssociationDecision {
+  chosenClassName: string;
+  chosenRole1Name?: string;
+  chosenRole2Name?: string;
 }
