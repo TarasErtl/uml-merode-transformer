@@ -266,6 +266,8 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
         proposedExistenceDependency: true,
         proposedMasterClassId: masterClassId!,
         proposedDependentClassId: dependentClassId!,
+        proposedMasterClassName: merodeIR.get(masterClassId!)?.name,
+        proposedDependentClassName: merodeIR.get(dependentClassId!)?.name,
         message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(masterClassId!)?.name} and class: ${merodeIR.get(dependentClassId!)?.name} is proposed to be mapped as an existence dependent association. `
       };
     } else{
@@ -275,6 +277,8 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
         proposedClassName: `${umlAssoc.id}_Class`,
         proposedRole1Name: end1.roleName,
         proposedRole2Name: end2.roleName,
+        class1Name: merodeIR.get(end1.targetClassId)?.name,
+        class2Name: merodeIR.get(end2.targetClassId)?.name,
         message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(end1.targetClassId)?.name} and class: ${merodeIR.get(end2.targetClassId)?.name} is proposed to be mapped as a non-existence dependent association.
         A new class ${umlAssoc.id}_Class will be created to represent the association, and two new associations will be created between the new class and the original classes.`
       };

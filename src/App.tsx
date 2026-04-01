@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
+import ProposalPanel from './components/ProposalPanel';
 import { mapXmiToIR } from './utils/json2umlMapper';
 import { mapUmlToMerode } from './utils/uml2merodeMapper';
+import UMLDiagram from "./components/UMLDiagram";
 import { type XmiJsonData } from './types/xmiJson';
 import { type UMLIR } from './types/uml';
 import { type MerodeIR } from "./types/merode";
@@ -12,7 +14,7 @@ import {
   type UnaryAssociationProposal, 
   type BinaryAssociationProposal, 
   type BinaryAssociationExistenceDependentProposal, 
-  type BinaryAssociationNoExistenceDependencyProposal 
+  type BinaryAssociationNoExistenceDependencyProposal,
 } from './types/proposals';
 import { 
   type Decision, 
@@ -20,10 +22,7 @@ import {
   type BinaryAssociationExistenceDependentDecision, 
   type BinaryAssociationNoExistenceDependencyDecision 
 } from './types/decisions';
-
-// Type guards to determine proposal type at runtime by checking for unique properties
-const isBinaryAssociationProposal = (p: Proposal): p is BinaryAssociationProposal => 'proposedExistenceDependency' in p;
-const isUnaryAssociationProposal = (p: Proposal): p is UnaryAssociationProposal => 'proposedClassName' in p && !isBinaryAssociationProposal(p);
+import { convertProposalToDecision } from "./utils/decicionFactory";
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -98,52 +97,62 @@ function App() {
    * @param key 
    * @param value 
    */
-  const handleProposalChange = (proposalId: string, key: string, value: string) => {
+  const handleProposalChange = (proposalId: string, key: string, value: any) => {
     setProposals(prevProposals =>
-      prevProposals.map(p =>
-        p.id === proposalId ? { ...p, [key]: value } : p
-      )
+      prevProposals.map(p => {
+        if (p.id === proposalId) {
+          const updated = { ...p, [key]: value } as any;
+          if (key === 'proposedExistenceDependency') {
+            if (value === true) {
+              if (!updated.proposedMasterClassName && updated.class1Name) {
+                updated.proposedMasterClassName = updated.class1Name;
+              }
+              if (!updated.proposedDependentClassName && updated.class2Name) {
+                updated.proposedDependentClassName = updated.class2Name;
+              }
+              // Fehlende IDs aus dem ursprünglichen UML-Graphen laden, damit der Swap-Button funktioniert
+              if (!updated.proposedMasterClassId || !updated.proposedDependentClassId) {
+                const assoc = umlIR?.model.packagedElement.find(e => e.id === proposalId) as any;
+                if (assoc && assoc.ends && assoc.ends.length >= 2) {
+                  updated.proposedMasterClassId = assoc.ends[0].targetClassId;
+                  updated.proposedDependentClassId = assoc.ends[1].targetClassId;
+                }
+              }
+            } else {
+              if (!updated.class1Name && updated.proposedMasterClassName) {
+                updated.class1Name = updated.proposedMasterClassName;
+              }
+              if (!updated.class2Name && updated.proposedDependentClassName) {
+                updated.class2Name = updated.proposedDependentClassName;
+              }
+            }
+          }
+          return updated as Proposal;
+        }
+        return p;
+      })
     );
   };
 
+  const handleSwapMasterDependent = (proposalId: string) => {
+    setProposals(prev => prev.map(p => {
+      if (p.id === proposalId && 'proposedMasterClassId' in p) {
+        const prop = p as BinaryAssociationExistenceDependentProposal;
+        return {
+          ...prop,
+          proposedMasterClassId: prop.proposedDependentClassId,
+          proposedDependentClassId: prop.proposedMasterClassId,
+          proposedMasterClassName: prop.proposedDependentClassName,
+          proposedDependentClassName: prop.proposedMasterClassName,
+        };
+      }
+      return p;
+    }));
+  }
+
   const handleAcceptProposal = (proposal: Proposal) => {
     // Convert the proposal to a decision based on its type
-    let newDecision: Decision | null = null;
-    
-    if (isUnaryAssociationProposal(proposal)) {
-      newDecision = {
-        id: proposal.id,
-        type: 'unaryAssociationDecision',
-        chosenClassName: proposal.proposedClassName,
-        chosenRole1Name: proposal.proposedRole1Name,
-        chosenRole2Name: proposal.proposedRole2Name,
-      } as UnaryAssociationDecision;
-    } else if (isBinaryAssociationProposal(proposal)) {
-      if (proposal.proposedExistenceDependency) {
-        const p = proposal as BinaryAssociationExistenceDependentProposal;
-        newDecision = {
-          id: p.id,
-          type: 'binaryAssociationExistenceDependentDecision',
-          chosenExistenceDependency: true,
-          chosenMasterClassId: p.proposedMasterClassId,
-          chosenDependentClassId: p.proposedDependentClassId,
-        } as BinaryAssociationExistenceDependentDecision;
-      } else {
-        const p = proposal as BinaryAssociationNoExistenceDependencyProposal;
-        newDecision = {
-          id: p.id,
-          type: 'binaryAssociationNoExistenceDependencyDecision',
-          chosenExistenceDependency: false,
-          chosenClassName: p.proposedClassName,
-          chosenRole1Name: p.proposedRole1Name,
-          chosenRole2Name: p.proposedRole2Name,
-        } as BinaryAssociationNoExistenceDependencyDecision;
-      }
-    }
-    // Add more cases for other proposal types with `else if`
-    else {
-      console.warn(`Unknown proposal type for ID: ${proposal.id}`);
-    }
+    const newDecision: Decision | null = convertProposalToDecision(proposal);
 
     if (newDecision) {
       setDecisions(prevDecisions => {
@@ -156,73 +165,42 @@ function App() {
   };
 
   return (
-    <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', flexDirection: 'column', fontFamily: 'sans-serif', padding: '20px', boxSizing: 'border-box', overflow: 'hidden' }}>
-      <div style={{ flexShrink: 0, marginBottom: '20px' }}>
-        <h1 style={{ marginTop: 0 }}>UML to MERODE Transformer</h1>
-        <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
-        {modelName && (
-          <div style={{ marginTop: '10px' }}>
-            <strong>Modell geladen:</strong> {modelName}
-          </div>
-        )}
-        {error && <div style={{ marginTop: '10px', color: 'red' }}>{error}</div>}
-      </div>
-      {proposals.length > 0 && ( // Überprüfen, ob Proposals vorhanden sind
-        <div style={{ flexShrink: 0, marginTop: '20px', padding: '15px', border: '1px solid #555', borderRadius: '8px', backgroundColor: '#1e1e1e', boxShadow: '0 4px 6px rgba(0,0,0,0.4)', overflowX: 'auto' }}>
-          <h2 style={{ marginTop: 0, marginBottom: '15px', color: '#f8f8f2' }}>Vorschläge zur Klärung:</h2>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
-            {proposals.map((proposal, index) => (
-              <div key={proposal.id} style={{
-                border: '1px solid #4A90E2',
-                borderRadius: '8px',
-                padding: '15px',
-                backgroundColor: '#2d2d2d',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                minWidth: '300px', // Mindestbreite für die Karte
-                color: '#f8f8f2'
-              }}>
-                <h3 style={{ margin: '0 0 10px 0', color: '#4A90E2' }}>Vorschlag {index + 1}</h3>
-                {Object.entries(proposal).map(([key, value]) => {
-                  if (key === 'id') return null;
-                  return (
-                    <div key={`${proposal.id}-${key}`} style={{ marginBottom: '8px' }}>
-                      <label htmlFor={`${proposal.id}-${key}`} style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>{key}:</label>
-                      <input
-                        id={`${proposal.id}-${key}`}
-                        type="text"
-                        value={value as string}
-                        onChange={(e) => {
-                          handleProposalChange(proposal.id, key, e.target.value);
-                        }}
-                        style={{
-                          width: 'calc(100% - 10px)',
-                          padding: '8px',
-                          borderRadius: '4px',
-                          border: '1px solid #555',
-                          backgroundColor: '#3c3c3c',
-                          color: '#f8f8f2'
-                        }}
-                      />
-                    </div>
-                  );
-                })}
-                <button
-                  onClick={() => handleAcceptProposal(proposal)}
-                  style={{
-                    marginTop: '15px',
-                    padding: '10px 20px',
-                    backgroundColor: '#28a745', // Green color for accept
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer',
-                    fontSize: '1em',
-                  }}>Vorschlag annehmen</button>
+    <div className="flex flex-col h-screen font-sans bg-gray-900 text-gray-100">
+      {!modelName && (
+        <header className="flex-shrink-0 p-4 border-b border-gray-700 shadow-md">
+          <h1 className="text-2xl font-bold text-white">UML-zu-MERODE Transformator</h1>
+          <p className="text-sm text-gray-400">Laden Sie eine XMI-Datei hoch, um die Transformation zu starten und Vorschläge zu bearbeiten.</p>
+          <div className="mt-4">
+            <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
+            {modelName && ( // This inner check for modelName will now always be false if the outer condition is true
+              <div className="mt-2 text-sm">
+                <strong>Modell:</strong> <span className="font-mono p-1 bg-gray-700 rounded">{modelName}</span>
               </div>
-            ))}
+            )}
+            {error && <div className="mt-2 text-red-400 bg-red-900/50 p-2 rounded">{error}</div>}
           </div>
-        </div>
+        </header>
       )}
+      <div className="flex flex-grow overflow-hidden">
+        <main className="flex-grow p-4 relative">
+          {umlIR ? (
+            <UMLDiagram umlIR={umlIR} />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              <p>Kein Modell geladen. Bitte wählen Sie eine XMI-Datei aus.</p> 
+            </div>
+          )}
+        </main>
+        <aside className="w-1/4 flex-shrink-0 h-full p-4"> {/* aside nimmt volle Höhe und hat Padding */} 
+          <ProposalPanel 
+            proposals={proposals}
+            onProposalChange={handleProposalChange}
+            onSwapMasterDependent={handleSwapMasterDependent}
+            onAcceptProposal={handleAcceptProposal}
+            className="h-full flex flex-col" /* ProposalPanel füllt die übergeordnete Höhe aus und wird zu einem Flex-Spalten-Container */
+          />
+        </aside>
+      </div>
     </div>
   );
 }

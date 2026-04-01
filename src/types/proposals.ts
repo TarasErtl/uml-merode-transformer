@@ -16,10 +16,14 @@ export interface BinaryAssociationProposal extends Proposal {
 export interface BinaryAssociationExistenceDependentProposal extends BinaryAssociationProposal {
     proposedMasterClassId: string;
     proposedDependentClassId: string;
+    proposedMasterClassName?: string;
+    proposedDependentClassName?: string;
 }
 
 export interface BinaryAssociationNoExistenceDependencyProposal extends BinaryAssociationProposal {
     proposedClassName: string;
     proposedRole1Name?: string;
     proposedRole2Name?: string;
+    class1Name?: string;
+    class2Name?: string;
 }
