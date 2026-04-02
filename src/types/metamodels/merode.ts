@@ -1,12 +1,12 @@
 /**
- * the root interface for the MERODE Model
+ * the root interface for the Merode Model
  */
 export interface MerodeIR {
   readonly model: MerodeModel;
 }
 
 /**
- * the root MERODE Model Element.Contains all the classes and associations
+ * the root Merode Model element, named "Model", containing all the other elements (classes and associations)
  */
 export interface MerodeModel extends MerodeBaseElement {
   readonly type: 'merode:Model';
@@ -14,8 +14,7 @@ export interface MerodeModel extends MerodeBaseElement {
 }
 
 /**
- * Represents a generic element,,every element should have and id and a name
- * has the status of the element during the transformation process
+ * Represents a generic element in an Merode Model, every element should have and id and a name
  */
 export interface MerodeBaseElement {
   readonly id: string;
@@ -28,7 +27,7 @@ export interface MerodeBaseElement {
 export type MerodeModelElement = MerodeClass | MerodeAssociation
 
 /**
- * Represents a MERODE Class, with its attributes and associations
+ * Represents a Merode Class, with its attributes and associationIds
  */
 export interface MerodeClass extends MerodeBaseElement {
   readonly type: 'merode:Class';
@@ -37,15 +36,14 @@ export interface MerodeClass extends MerodeBaseElement {
 }
 
 /**
- * Represents a MERODE attribute,
- * //TODO später visibility und isUnique wegtun
+ * Represents a Merode attribute
  */
 export interface MerodeAttribute extends MerodeBaseElement {
   readonly type: 'merode:Attribute';
 }
 
 /**
- * Represents a MERODE Association, containing the two classes
+ * Represents a Merode Association, containing master and dependent class
  * the role name, and the multiplicity of the dependent class
  */
 export interface MerodeAssociation extends MerodeBaseElement {
@@ -57,7 +55,7 @@ export interface MerodeAssociation extends MerodeBaseElement {
 }
 
 /**
- * Values for the multiplicity of a MERODE dependend class.
+ * Values for the multiplicity of a Merode dependend class.
  */
 export const MerodeMultiplicity = {
   ZeroToMany: "0..*",

@@ -16,7 +16,7 @@ import {
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
-import { UMLIR, UMLClass, UMLAssociation } from '../types/uml';
+import { UMLIR, UMLClass, UMLAssociation } from '../types/metamodels/uml';
 
 // 1. Custom Node für die Darstellung von UML Klassen und deren Attributen
 const ClassNode = ({ data }: any) => {

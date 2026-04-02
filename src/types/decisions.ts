@@ -1,6 +1,6 @@
 export interface Decision {
-  id: string; // Corresponds to the proposal ID
-  type: string; // To differentiate between different decision types
+  id: string;
+  type: string;
 }
 
 export interface UnaryAssociationDecision extends Decision {

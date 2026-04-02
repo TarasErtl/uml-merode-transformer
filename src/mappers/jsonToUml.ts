@@ -7,7 +7,7 @@ import {
   UMLLowerBound, 
   UMLUpperBound,
   UMLAggregationKind,
-} from '../types/uml';
+} from '../types/metamodels/uml';
 import {
   type XmiJsonData,
   type XmiJsonModel,
@@ -15,7 +15,7 @@ import {
   type XmiJsonAssociation,
   type XmiJsonOwnedAttribute,
   type XmiJsonBaseElement
-} from '../types/xmiJson';
+} from '../types/metamodels/xmiJson';
 
 /**
  * Helper function to ensure we always work with arrays, even if the XMI parser returns a single object for singular elements.

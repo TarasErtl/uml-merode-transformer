@@ -3,12 +3,12 @@ import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
 import ProposalPanel from './components/ProposalPanel';
-import { mapXmiToIR } from './utils/json2umlMapper';
-import { mapUmlToMerode } from './utils/uml2merodeMapper';
+import { mapXmiToIR } from './mappers/jsonToUml';
+import { mapUmlToMerode } from './mappers/umlToMerode';
 import UMLDiagram from "./components/UMLDiagram";
-import { type XmiJsonData } from './types/xmiJson';
-import { type UMLIR } from './types/uml';
-import { type MerodeIR } from "./types/merode";
+import { type XmiJsonData } from './types/metamodels/xmiJson';
+import { type UMLIR } from './types/metamodels/uml';
+import { type MerodeIR } from "./types/metamodels/merode";
 import { 
   type Proposal, 
   type UnaryAssociationProposal, 
@@ -22,7 +22,7 @@ import {
   type BinaryAssociationExistenceDependentDecision, 
   type BinaryAssociationNoExistenceDependencyDecision 
 } from './types/decisions';
-import { convertProposalToDecision } from "./utils/decicionFactory";
+import { convertProposalToDecision } from "./utils/decisionConverter";
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
