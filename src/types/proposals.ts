@@ -11,21 +11,16 @@ export interface UnaryAssociationProposal extends Proposal {
 
 export interface BinaryAssociationProposal extends Proposal {
     proposedExistenceDependency: boolean;
-}
-
-export interface BinaryAssociationExistenceDependentProposal extends BinaryAssociationProposal {
+    //if existence dependent fill the values, if not use to store the names and id's of the adjacent classes
     proposedMasterClassId: string;
     proposedDependentClassId: string;
-    proposedMasterClassName?: string;
-    proposedDependentClassName?: string;
-}
-
-export interface BinaryAssociationNoExistenceDependencyProposal extends BinaryAssociationProposal {
-    proposedClassName: string;
+    proposedMasterClassName: string;
+    proposedDependentClassName: string;
+    //only needed if not existence dependent
+    proposedClassName?: string;
     proposedRole1Name?: string;
     proposedRole2Name?: string;
-    class1Name?: string;
-    class2Name?: string;
+    
 }
 
 export interface NAryAssociationProposal extends Proposal {

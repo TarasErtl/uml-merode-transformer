@@ -9,8 +9,8 @@ import {
   type MerodeBaseElement,
   type MerodeModelElement,
 } from '../types/metamodels/merode';
-import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, BinaryAssociationExistenceDependentProposal, BinaryAssociationNoExistenceDependencyProposal, NAryAssociationProposal } from '../types/proposals';
-import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, BinaryAssociationExistenceDependentDecision, BinaryAssociationNoExistenceDependencyDecision, NAryAssociationDecision} from '../types/decisions';
+import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAryAssociationProposal } from '../types/proposals';
+import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision} from '../types/decisions';
 import { createIntermediateClassForAssociation, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeHelpers';
 import { checkAggregationAssociation, checkExistenceDependency } from './merodeHeuristics';
 import NAryAssociationProposalCard from '../components/NAryAssociationProposalCard';
@@ -81,11 +81,11 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
     isExistenceDependent = decision.chosenExistenceDependency;
 
     if (isExistenceDependent) {
-      masterClassId = (decision as BinaryAssociationExistenceDependentDecision).chosenMasterClassId;
-      dependentClassId = (decision as BinaryAssociationExistenceDependentDecision).chosenDependentClassId;
+      masterClassId = decision.chosenMasterClassId;
+      dependentClassId = decision.chosenDependentClassId;
     }
     else {
-      className = (decision as BinaryAssociationNoExistenceDependencyDecision).chosenClassName;
+      className = decision.chosenClassName!;
     }
   }
   //if no decision, check the ends for aggregation and muliplicity to assume existence dependency
@@ -120,32 +120,30 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
 
   //if no decision present, create and return a proposal
   if(!decisions.has(umlAssoc.id)){
-    let retProposal: BinaryAssociationExistenceDependentProposal | BinaryAssociationNoExistenceDependencyProposal;
+    let retProposal: BinaryAssociationProposal;
+    let message, masterclassName, dependentclassName: string;
 
-    //The type of the proposal depends whether existence dependency is assumed or not
-    if (isExistenceDependent){
-      return {
-        id: umlAssoc.id,
-        proposedExistenceDependency: true,
-        proposedMasterClassId: masterClassId!,
-        proposedDependentClassId: dependentClassId!,
-        proposedMasterClassName: merodeIR.get(masterClassId!)?.name,
-        proposedDependentClassName: merodeIR.get(dependentClassId!)?.name,
-        message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(masterClassId!)?.name} and class: ${merodeIR.get(dependentClassId!)?.name} is proposed to be mapped as an existence dependent association. `
-      } as BinaryAssociationExistenceDependentProposal;
-    } else{
-      return {
-        id: umlAssoc.id,
-        proposedExistenceDependency: false,
-        proposedClassName: `${umlAssoc.id}_Class`,
-        proposedRole1Name: end1.roleName,
-        proposedRole2Name: end2.roleName,
-        class1Name: merodeIR.get(end1.targetClassId)?.name,
-        class2Name: merodeIR.get(end2.targetClassId)?.name,
-        message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(end1.targetClassId)?.name} and class: ${merodeIR.get(end2.targetClassId)?.name} is proposed to be mapped as a non-existence dependent association.
+    masterclassName = merodeIR.get(masterClassId!)?.name!;
+    dependentclassName = merodeIR.get(dependentClassId!)?.name!;
+
+    if(isExistenceDependent){
+      message = `The association ${umlAssoc.id}, going between class: ${merodeIR.get(masterClassId!)?.name} and class: ${merodeIR.get(dependentClassId!)?.name} is proposed to be mapped as an existence dependent association. `
+    } else {
+      message =  `The association ${umlAssoc.id}, going between class: ${merodeIR.get(end1.targetClassId)?.name} and class: ${merodeIR.get(end2.targetClassId)?.name} is proposed to be mapped as a non-existence dependent association.
         A new class ${umlAssoc.id}_Class will be created to represent the association, and two new associations will be created between the new class and the original classes.`
-      } as BinaryAssociationNoExistenceDependencyProposal;
+    }
 
+    return {
+      id: umlAssoc.id,
+      proposedExistenceDependency: isExistenceDependent,
+      proposedMasterClassId: masterClassId!,
+      proposedDependentClassId: dependentClassId!,
+      proposedMasterClassName: masterclassName!,
+      proposedDependentClassName: dependentclassName!,
+      proposedClassName: `${umlAssoc.id}_Class`,
+      proposedRole1Name: end1.roleName,
+      proposedRole2Name: end2.roleName,
+      message: message
     }
   }
   return null;

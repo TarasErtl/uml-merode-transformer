@@ -22,7 +22,7 @@ export const checkExistenceDependency = (end1: UMLAssociationEnd, end2: UMLAssoc
   if (end2.upperBound === UMLUpperBound.One && end2.lowerBound === UMLLowerBound.One) {
     return [true, end2.targetClassId, end1.targetClassId];
   }
-  return [false, '', ''];
+  return [false, end1.targetClassId, end2.targetClassId];
 };
 
 /**
@@ -32,7 +32,7 @@ export const checkExistenceDependency = (end1: UMLAssociationEnd, end2: UMLAssoc
  *        the second element is the id of the class on the aggregation side,
  *        the third element is the id of the class on the non-aggregation side
  */
-export const checkAggregationAssociation = (umlAssoc: UMLAssociation): [boolean, string, string] | [false, null, null] => {
+export const checkAggregationAssociation = (umlAssoc: UMLAssociation): [boolean, string, string] => {
   const [end1, end2] = umlAssoc.ends;
   let isAggregation: boolean | undefined;
          
@@ -44,5 +44,5 @@ export const checkAggregationAssociation = (umlAssoc: UMLAssociation): [boolean,
   if(isAggregation){
     return [true, end2.targetClassId, end1.targetClassId];
   }
-  return [false, null, null];
+  return [false, end1.targetClassId, end2.targetClassId];
 }
