@@ -5,23 +5,21 @@ import {
 } from '../types/metamodels/uml';
 import {
   type MerodeIR,
-  type MerodeClass,
   type MerodeAttribute,
-  type MerodeAssociation,
   type MerodeBaseElement,
   type MerodeModelElement,
 } from '../types/metamodels/merode';
-import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, BinaryAssociationExistenceDependentProposal, BinaryAssociationNoExistenceDependencyProposal } from '../types/proposals';
-import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, BinaryAssociationExistenceDependentDecision, BinaryAssociationNoExistenceDependencyDecision} from '../types/decisions';
+import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, BinaryAssociationExistenceDependentProposal, BinaryAssociationNoExistenceDependencyProposal, NAryAssociationProposal } from '../types/proposals';
+import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, BinaryAssociationExistenceDependentDecision, BinaryAssociationNoExistenceDependencyDecision, NAryAssociationDecision} from '../types/decisions';
 import { createIntermediateClassForAssociation, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeHelpers';
 import { checkAggregationAssociation, checkExistenceDependency } from './merodeHeuristics';
+import NAryAssociationProposalCard from '../components/NAryAssociationProposalCard';
 
 /**
  * Maps an Unary UML Association to Merode, by:
  * - getting the mapping information from a decision if it is present, otherwise uses default values
  * - creating an intermediate class and two new associations to this class
  * - if dafault values were used, returns a proposal
- * 
  * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
  * @param umlAssoc the UML association that should be mapped
  * @param decisions the Map of the decisions, to check if there is already a decision for the unary association
@@ -30,8 +28,6 @@ import { checkAggregationAssociation, checkExistenceDependency } from './merodeH
 const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): UnaryAssociationProposal | null=> {
   const [end1, end2] = umlAssoc.ends;
   let classId: string = `${umlAssoc.id}_unary_Class`;
-  let assoc1Id: string = `${umlAssoc.id}_assoc1`;
-  let assoc2Id: string = `${umlAssoc.id}_assoc2`;
   let className: string = `${umlAssoc.name}_Class`;
   let assocName1: string = end1.roleName ?? '';
   let assocName2: string = end2.roleName ?? '';
@@ -48,26 +44,24 @@ const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc:
 
   //if no decision present, create and return a proposal                      
   if (!decisions.has(umlAssoc.id)) {
-    const retProposal: UnaryAssociationProposal = {
+    return {
         id: umlAssoc.id,
         proposedClassName: classId,
         proposedRole1Name: assocName1,
         proposedRole2Name: assocName2,
         message: `The association ${umlAssoc.id} is a unary association, it will be mapped by creating a new class ${className} and two associations between the new class and the original class`
       };
-    return retProposal;
   }
   return null;                  
 };
 
 /**
- * Maps an Unary UML Association to Merode, by:
+ * Maps an Binary UML Association to Merode, by:
  * - getting the mapping information from a decision if it is present, otherwise uses default values
  * - mapping the association
  *   - case 1 (existence dependency): creating a new association with master and dependent class
  *   - case 2 (no existence dependency): creating an intermediate class and two new associations between the new class and the original classes
  * - if default values were used, returns a proposal
- * 
  * The assuming of the existence dependency occurs by checking the multiplicity of the association ends, and whether it is an aggregation.
  * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
  * @param umlAssoc the UML association that should be mapped
@@ -119,6 +113,7 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
   }
   //case 2: non-existence dependency is assumed or decided
   else {
+    //TODO bei dem Proposals und Decisions für die Binary auch die Roles für die Einzelnen Assocs abfragen?
     const classId: string = `${umlAssoc.id}_Class`;
     createIntermediateClassForAssociation(merodeIR, umlAssoc, className ?? classId, [end1.roleName ?? '', end2.roleName ?? '']);
   }
@@ -129,7 +124,7 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
 
     //The type of the proposal depends whether existence dependency is assumed or not
     if (isExistenceDependent){
-      retProposal  = {
+      return {
         id: umlAssoc.id,
         proposedExistenceDependency: true,
         proposedMasterClassId: masterClassId!,
@@ -137,9 +132,9 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
         proposedMasterClassName: merodeIR.get(masterClassId!)?.name,
         proposedDependentClassName: merodeIR.get(dependentClassId!)?.name,
         message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(masterClassId!)?.name} and class: ${merodeIR.get(dependentClassId!)?.name} is proposed to be mapped as an existence dependent association. `
-      };
+      } as BinaryAssociationExistenceDependentProposal;
     } else{
-      retProposal  = {
+      return {
         id: umlAssoc.id,
         proposedExistenceDependency: false,
         proposedClassName: `${umlAssoc.id}_Class`,
@@ -149,16 +144,46 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
         class2Name: merodeIR.get(end2.targetClassId)?.name,
         message: `The association ${umlAssoc.id}, going between class: ${merodeIR.get(end1.targetClassId)?.name} and class: ${merodeIR.get(end2.targetClassId)?.name} is proposed to be mapped as a non-existence dependent association.
         A new class ${umlAssoc.id}_Class will be created to represent the association, and two new associations will be created between the new class and the original classes.`
-      };
+      } as BinaryAssociationNoExistenceDependencyProposal;
 
     }
-    return retProposal;
   }
   return null;
 };
 
-const mapNaryAssociation = (umlAssoc: UMLAssociation, merodeClasses: MerodeClass[], merodeAssociations: MerodeAssociation[]) => {
-  // Case n-ary Association (TODO)
+/**
+ * Maps an N-ary UML Association to Merode, by:
+ * - getting the mapping information from a decision if it is present, otherwise uses default values
+ * - creating an intermediate class and new associations to this class
+ * - if default values were used, returns a proposal
+ * 
+ * @param MerodeIR 
+ * @param umlAssoc 
+ * @param decisions 
+ * @returns 
+ */
+const mapNaryAssociation = (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): NAryAssociationProposal | null => {
+    const ends = umlAssoc.ends;
+    let className: string = `${umlAssoc.id}_Class`;
+
+    //if a decision has been made, use the values
+    if(decisions.has(umlAssoc.id)){
+      className = (decisions.get(umlAssoc.id) as NAryAssociationDecision).chosenClassName;
+    }
+
+    //Map the n-ary association by creating an intermediate class and associations to the original classes
+    createIntermediateClassForAssociation(MerodeIR, umlAssoc, `${umlAssoc.name}_Class`, ends.map(end => end.roleName ?? ''));
+
+    //if no decision present, create and return a proposal
+    if (!decisions.has(umlAssoc.id)) {
+      return {
+        id: umlAssoc.id,
+        proposedClassName: className,
+        proposedRoleNames: ends.map(end => end.roleName ?? ''),
+        message: `The association: "${umlAssoc.id}" is an n-ary association, and it will be mapped by creating a new intermediate class, please choose a name for the new class`
+      };
+    }
+    return null;
 };
 
 /**
@@ -201,7 +226,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
             }
             //N-ary Association
             else {
-                //proposal = mapNaryAssociation(umlAssoc, merodeClasses, merodeAssociations);
+                proposal = mapNaryAssociation(merodeIR, umlAssoc, decisions);
             }
 
             if (proposal){

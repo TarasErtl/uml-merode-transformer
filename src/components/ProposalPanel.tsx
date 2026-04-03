@@ -1,7 +1,8 @@
 import { type Proposal } from '../types/proposals';
-import { isBinaryAssociationProposal, isUnaryAssociationProposal } from '../utils/proposalTypeGuards';
+import { isBinaryAssociationProposal, isNAryAssociationProposal, isUnaryAssociationProposal } from '../utils/proposalTypeGuards';
 import UnaryAssociationProposalCard from './UnaryAssociationProposalCard';
 import BinaryAssociationProposalCard from './BinaryAssociationProposalCard';
+import NAryAssociationProposalCard from './NAryAssociationProposalCard';
 
 interface ProposalPanelProps {
   proposals: Proposal[];
@@ -11,26 +12,38 @@ interface ProposalPanelProps {
   className?: string; // Add className to props
 }
 
-const ProposalPanel = ({ proposals, onProposalChange, onAcceptProposal, onSwapMasterDependent, className }: ProposalPanelProps) => {
+export const ProposalPanel = ({ proposals, onProposalChange, onAcceptProposal, onSwapMasterDependent, className }: ProposalPanelProps) => {
   if (proposals.length > 0) {
     return (
     <div className={`${className} p-4`}> {/* Abstand zum Panel-Rand mit Tailwind statt inline-style */}
       <h2 className="text-lg font-bold mb-4">Open Proposals:</h2> {/* Added mb-4 for spacing */}
       <div className="flex flex-col gap-4 flex-grow overflow-y-auto"> {/* Ermöglicht Scrollen und nimmt verfügbaren Platz ein */}
         {proposals.map((proposal) => {
+          let cardContent;
+
           if (isUnaryAssociationProposal(proposal)) {
-            return <UnaryAssociationProposalCard key={proposal.id} proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} />;
+            cardContent = <UnaryAssociationProposalCard proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} />;
+          } else if (isBinaryAssociationProposal(proposal)) {
+            cardContent = <BinaryAssociationProposalCard proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} onSwapMasterDependent={onSwapMasterDependent} />;
+          } else if (isNAryAssociationProposal(proposal)) {
+            cardContent = <NAryAssociationProposalCard proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} />;
+          } else {
+            // Fallback für unbekannte Proposal-Typen
+            cardContent = <div>Unbekannter Proposal-Typ: {proposal.id}</div>;
           }
-          if (isBinaryAssociationProposal(proposal)) {
-            return <BinaryAssociationProposalCard key={proposal.id} proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} onSwapMasterDependent={onSwapMasterDependent} />;
-          }
-          // Fallback für unbekannte Proposal-Typen
-          return <div key={proposal.id}>Unbekannter Proposal-Typ: {proposal.id}</div>;
+
+          return (
+            <div 
+              key={proposal.id}
+            >
+              {cardContent}
+            </div>
+          );
         })}
       </div>
     </div>
   );
-  }
+}
 };
 
 export default ProposalPanel;

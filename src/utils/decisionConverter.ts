@@ -3,14 +3,16 @@ import {
     type UnaryAssociationDecision,
     type BinaryAssociationExistenceDependentDecision,
     type BinaryAssociationNoExistenceDependencyDecision,
+    type NAryAssociationDecision,
 } from '../types/decisions';
 import { 
     type Proposal,
     type UnaryAssociationProposal,
     type BinaryAssociationExistenceDependentProposal,
-    type BinaryAssociationNoExistenceDependencyProposal
+    type BinaryAssociationNoExistenceDependencyProposal,
+    type NAryAssociationProposal
  } from '../types/proposals';
-import { isBinaryAssociationExistenceDependentProposal, isBinaryAssociationNoExistenceDependencyProposal, isBinaryAssociationProposal, isUnaryAssociationProposal } from './proposalTypeGuards';
+import { isBinaryAssociationExistenceDependentProposal, isBinaryAssociationNoExistenceDependencyProposal, isBinaryAssociationProposal, isNAryAssociationProposal, isUnaryAssociationProposal } from './proposalTypeGuards';
 
 const convertUnaryAssociationProposalToDecision = (proposal: UnaryAssociationProposal): UnaryAssociationDecision => ({
     id: proposal.id,
@@ -37,6 +39,13 @@ const convertBinaryAssociationExistenceDependentProposalToDecision = (proposal: 
     chosenDependentClassId: proposal.proposedDependentClassId,
 });
 
+const convertNaryAssociationProposalToDecision = (proposal: NAryAssociationProposal): NAryAssociationDecision => ({
+    id: proposal.id,
+    type: 'nAryAssociationDecision',
+    chosenClassName: proposal.proposedClassName,
+    chosenRoleNames: proposal.proposedRoleNames,
+});
+
 export const convertProposalToDecision = (proposal: Proposal): Decision | null => {
     if (isUnaryAssociationProposal(proposal)) {
         return convertUnaryAssociationProposalToDecision(proposal);
@@ -48,6 +57,9 @@ export const convertProposalToDecision = (proposal: Proposal): Decision | null =
         else if (isBinaryAssociationNoExistenceDependencyProposal(proposal)) {
             return convertBinaryAssociationNoExistenceDependencyProposalToDecision(proposal);
         }
+    }
+    else if (isNAryAssociationProposal(proposal)) {
+        return convertNaryAssociationProposalToDecision(proposal);
     }
     return null;
         

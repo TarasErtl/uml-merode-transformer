@@ -27,3 +27,8 @@ export interface BinaryAssociationNoExistenceDependencyProposal extends BinaryAs
     class1Name?: string;
     class2Name?: string;
 }
+
+export interface NAryAssociationProposal extends Proposal {
+    proposedClassName: string;
+    proposedRoleNames: string[];
+}

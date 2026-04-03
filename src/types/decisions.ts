@@ -23,3 +23,8 @@ export interface BinaryAssociationNoExistenceDependencyDecision extends BinaryAs
   chosenRole1Name?: string;
   chosenRole2Name?: string;
 }
+
+export interface NAryAssociationDecision extends Decision {
+  chosenClassName: string;
+  chosenRoleNames: string[];
+}
