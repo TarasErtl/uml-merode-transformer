@@ -1,0 +1,131 @@
+import React from 'react';
+import { Handle, Position, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from '@xyflow/react';
+
+/**
+ * Custom Node component for representing MERODE Classes.
+ * It uses a distinct color scheme to differentiate from UML Classes.
+ */
+export const MerodeClassNode = ({ data }: any) => {
+  return (
+    <div style={{ 
+      border: '1px solid #555', 
+      borderRadius: '6px', 
+      background: '#1e1e1e', // Match UML node background color
+      color: '#f8f8f2',
+      minWidth: '240px', 
+      fontSize: '16px', 
+      boxShadow: '0 4px 6px rgba(0,0,0,0.4)'
+    }}>
+      <div style={{ 
+        background: '#2d2d2d', 
+        borderBottom: '1px solid #555', 
+        padding: '12px', 
+        textAlign: 'center', 
+        fontWeight: 'bold',
+        fontSize: '20px',
+        fontFamily: 'Arial',
+        borderTopLeftRadius: '5px',
+        borderTopRightRadius: '5px'
+      }}>
+        {data.label}
+      </div>
+      <div style={{ padding: '12px' }}>
+        {data.attributes && data.attributes.length > 0 ? (
+          data.attributes.map((attr: any, index: number) => (
+            <div key={attr.id || index} style={{ marginBottom: '4px' }}>
+              {attr.name}: {attr.type}
+            </div>
+          ))
+        ) : (
+          <div style={{ fontStyle: 'italic', color: '#888', textAlign: 'center', fontSize: '14px' }}>No Attributes</div>
+        )}
+      </div>
+      
+      <Handle type="target" position={Position.Top} id="top-target-left" style={{ left: '25%', opacity: 0 }} />
+      <Handle type="target" position={Position.Top} id="top-target-center" style={{ left: '50%', opacity: 0 }} />
+      <Handle type="target" position={Position.Top} id="top-target-right" style={{ left: '75%', opacity: 0 }} />
+      <Handle type="source" position={Position.Top} id="top-source" style={{ opacity: 0 }} />
+      
+      <Handle type="target" position={Position.Bottom} id="bottom-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom-source-left" style={{ left: '25%', opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom-source-center" style={{ left: '50%', opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom-source-right" style={{ left: '75%', opacity: 0 }} />
+
+      <Handle type="target" position={Position.Left} id="left-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Left} id="left-source" style={{ opacity: 0 }} />
+      
+      <Handle type="target" position={Position.Right} id="right-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right-source" style={{ opacity: 0 }} />
+    </div>
+  );
+};
+
+/**
+ * Custom Edge component for MERODE associations (usually existence dependency).
+ */
+export const MerodeEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style, markerEnd, data }: any) => {
+  const isSelfLoop = data?.isSelfLoop;
+  let edgePath;
+
+  if (isSelfLoop) {
+    const getCP = (x: number, y: number, pos: Position) => {
+      if (pos === Position.Top) return { x, y: y - 100 };
+      if (pos === Position.Bottom) return { x, y: y + 100 };
+      if (pos === Position.Left) return { x: x - 100, y };
+      if (pos === Position.Right) return { x: x + 100, y };
+      return { x, y };
+    };
+    const cp1 = getCP(sourceX, sourceY, sourcePosition);
+    const cp2 = getCP(targetX, targetY, targetPosition);
+    edgePath = `M ${sourceX} ${sourceY} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${targetX} ${targetY}`;
+  } else {
+    [edgePath] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
+  }
+
+  const mStart = data?.isOptional ? 'url(#merode-circle-hollow)' : 'url(#merode-circle-filled)';
+  const mEnd = data?.isMultiple ? (markerEnd || 'url(#merode-arrow)') : undefined;
+  const labelOffset = 60; // Increased offset to prevent labels from overlapping horizontal markers
+
+  let targetLabelX = targetX;
+  let targetLabelY = targetY;
+  switch (targetPosition) {
+    case Position.Top:    targetLabelY -= labelOffset; break;
+    case Position.Bottom: targetLabelY += labelOffset; break;
+    case Position.Left:   targetLabelX -= labelOffset; break;
+    case Position.Right:  targetLabelX += labelOffset; break;
+  }
+
+  return (
+    <>
+      <BaseEdge id={id} path={edgePath} markerStart={mStart} markerEnd={mEnd} style={{ ...style, stroke: '#aaa', strokeWidth: 2 }} />
+      {data?.targetLabel && (
+        <EdgeLabelRenderer>
+          <div style={{ position: 'absolute', transform: `translate(-50%, -50%) translate(${targetLabelX}px,${targetLabelY}px)`, background: '#333', color: '#eee', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 500, pointerEvents: 'none', zIndex: 10 }}>
+            {data.targetLabel}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  );
+};
+
+export const nodeTypes = { merodeClass: MerodeClassNode };
+export const edgeTypes = { merodeEdge: MerodeEdge };
+
+export const MerodeDiagramMarkers = () => (
+  <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+    <defs>
+      <marker id="merode-arrow" viewBox="0 0 24 24" refX="24" refY="12" markerWidth="24" markerHeight="24" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <polygon points="0,4 24,12 0,20 6,12" fill="#aaa" stroke="#aaa" strokeWidth="1.5" strokeLinejoin="round" />
+      </marker>
+      
+      <marker id="merode-circle-hollow" viewBox="0 0 20 20" refX="10" refY="10" markerWidth="20" markerHeight="20" orient="auto" markerUnits="userSpaceOnUse">
+        <circle cx="10" cy="10" r="8" fill="#1e1e1e" stroke="#aaa" strokeWidth="2" />
+      </marker>
+
+      <marker id="merode-circle-filled" viewBox="0 0 20 20" refX="10" refY="10" markerWidth="20" markerHeight="20" orient="auto" markerUnits="userSpaceOnUse">
+        <circle cx="10" cy="10" r="8" fill="#aaa" stroke="#aaa" strokeWidth="2" />
+      </marker>
+    </defs>
+  </svg>
+);

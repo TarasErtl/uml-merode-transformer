@@ -240,7 +240,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
                 id: umlIR.model.id,
                 type: 'merode:Model',
                 name: umlIR.model.name,
-                elements: [...merodeIR.values()]
+                elements: Array.from(merodeIR.values())
             }
         },
         proposals: Array.from(newProposals.values())

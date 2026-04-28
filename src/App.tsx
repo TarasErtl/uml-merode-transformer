@@ -3,24 +3,19 @@ import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
 import ProposalPanel from './components/ProposalPanel';
-import { mapXmiToIR } from './mappers/jsonToUml';
+import { mapXmiToIR } from './mappers/jsonToUml'; // Corrected import path
 import { mapUmlToMerode } from './mappers/umlToMerode';
-import UMLDiagram from "./components/UMLDiagram";
+import UMLDiagram from "./components/DiagrammElements/UMLDiagram";
+import MERODEDiagram from "./components/DiagrammElements/MerodeDiagram";
 import { type XmiJsonData } from './types/metamodels/xmiJson';
 import { type UMLIR } from './types/metamodels/uml';
 import { type MerodeIR } from "./types/metamodels/merode";
 import { 
-  type Proposal, 
-  type UnaryAssociationProposal, 
-  type BinaryAssociationProposal, 
+  type Proposal,
   type BinaryAssociationExistenceDependentProposal, 
-  type BinaryAssociationNoExistenceDependencyProposal,
 } from './types/proposals';
 import { 
   type Decision, 
-  type UnaryAssociationDecision, 
-  type BinaryAssociationExistenceDependentDecision, 
-  type BinaryAssociationNoExistenceDependencyDecision 
 } from './types/decisions';
 import { convertProposalToDecision } from "./utils/decisionConverter";
 
@@ -29,6 +24,7 @@ function App() {
   const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
   const [error, setError] = useState<string>("");
   const [merodeIR, setMerodeIR] = useState<MerodeIR | null>(null);
+  const [showMerodeDiagram, setShowMerodeDiagram] = useState<boolean>(false); // New state to toggle diagram view
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [decisions, setDecisions] = useState<Map<string, Decision>>(new Map()); // New state for decisions
 
@@ -182,11 +178,24 @@ function App() {
         </header>
       )}
       <div className="flex flex-grow overflow-hidden">
+        {/* Toggle button for diagram view */}
+        {umlIR && (
+          <div className="absolute top-4 right-4 z-10">
+            <button 
+              onClick={() => setShowMerodeDiagram(!showMerodeDiagram)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold text-sm hover:bg-blue-700 transition-colors"
+            >
+              {showMerodeDiagram ? 'Show UML Diagram' : 'Show MERODE Diagram'}
+            </button>
+          </div>
+        )}
         <main className="flex-grow p-4 relative">
-          {umlIR ? (
+          {umlIR && showMerodeDiagram && merodeIR ? (
+            <MERODEDiagram merodeIR={merodeIR} />
+          ) : umlIR && !showMerodeDiagram ? (
             <UMLDiagram umlIR={umlIR} />
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
+          ) : ( // No UML IR loaded
+            <div className="flex items-center justify-center h-full text-gray-500"> 
               <p>Kein Modell geladen. Bitte wählen Sie eine XMI-Datei aus.</p> 
             </div>
           )}
