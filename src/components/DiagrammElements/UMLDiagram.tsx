@@ -10,7 +10,7 @@ import {
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
-import { UMLIR, UMLClass, UMLAssociation } from '../../types/metamodels/uml';
+import { UMLIR, UMLClass, UMLAssociation, UMLRegularAssociationEnd } from '../../types/metamodels/uml';
 import { nodeTypes, edgeTypes } from './UMLElements';
 
 /**
@@ -167,12 +167,35 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
 
     // Process UML associations into visual edges (for binary) or diamond nodes + edges (for n-ary)
     associations.forEach((assoc) => {
-      if (assoc.ends.length === 2) {
+      const isGeneralization = assoc.ends.some((end) => end.endType === 'generalization');
+
+      if (isGeneralization && assoc.ends.length === 2) {
+        const superclassEnd = assoc.ends.find((end) => end.endType === 'generalization');
+        const subclassEnd = assoc.ends.find((end) => end.endType !== 'generalization');
+
+        if (superclassEnd && subclassEnd) {
+          initialEdges.push({
+            id: assoc.id,
+            source: subclassEnd.targetClassId,
+            target: superclassEnd.targetClassId,
+            type: 'umlEdge',
+            data: {
+              sourceLabel: '',
+              targetLabel: '',
+              sourceAggregation: 'none',
+              targetAggregation: 'generalization',
+            }
+          });
+        }
+      } else if (assoc.ends.length === 2) {
         // Binary association: map directly to a single React Flow edge
-        const [end1, end2] = assoc.ends;
+        const end1 = assoc.ends[0] as UMLRegularAssociationEnd;
+        const end2 = assoc.ends[1] as UMLRegularAssociationEnd;
         
         const label1 = `${end1.roleName ? end1.roleName + ' ' : ''}${end1.lowerBound}..${end1.upperBound}`;
         const label2 = `${end2.lowerBound}..${end2.upperBound}${end2.roleName ? ' ' + end2.roleName : ''}`;
+
+        const getAggregationString = (type: string) => type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
 
         initialEdges.push({
           id: assoc.id,
@@ -182,8 +205,8 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
           data: {
             sourceLabel: label1,
             targetLabel: label2,
-            sourceAggregation: end1.aggregation,
-            targetAggregation: end2.aggregation,
+            sourceAggregation: getAggregationString(end1.endType),
+            targetAggregation: getAggregationString(end2.endType),
           }
         });
       } else if (assoc.ends.length > 2) {
@@ -195,16 +218,19 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
           data: { label: assoc.name }
         });
 
+        const getAggregationString = (type: string) => type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
+
         assoc.ends.forEach((end, idx) => {
-          const label = `${end.lowerBound}..${end.upperBound}${end.roleName ? ' ' + end.roleName : ''}`;
+          const regEnd = end as UMLRegularAssociationEnd;
+          const label = `${regEnd.lowerBound}..${regEnd.upperBound}${regEnd.roleName ? ' ' + regEnd.roleName : ''}`;
           initialEdges.push({
             id: `${assoc.id}-edge-${idx}`,
             source: assoc.id,
-            target: end.targetClassId,
+            target: regEnd.targetClassId,
             type: 'umlEdge',
             data: {
               targetLabel: label,
-              targetAggregation: end.aggregation, 
+              targetAggregation: getAggregationString(regEnd.endType), 
             }
           });
         });
@@ -397,6 +423,9 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
           </marker>
           <marker id="composition" viewBox="0 0 20 10" refX="20" refY="5" markerWidth="20" markerHeight="10" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
             <polygon points="0,5 10,0 20,5 10,10" fill="#aaa" stroke="#aaa" strokeWidth="1.5" />
+          </marker>
+          <marker id="generalization" viewBox="0 0 30 30" refX="30" refY="15" markerWidth="30" markerHeight="30" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+            <polygon points="0,0 30,15 0,30" fill="#1e1e1e" stroke="#aaa" strokeWidth="1.5" />
           </marker>
         </defs>
       </svg>

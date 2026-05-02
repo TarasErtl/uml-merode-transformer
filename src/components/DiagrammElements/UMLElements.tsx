@@ -132,8 +132,9 @@ export const UMLEdge = ({
   }
 
   const getMarkerUrl = (agg?: string) => {
-    if (agg === 'composite') return 'url(#composition)';
-    if (agg === 'shared') return 'url(#aggregation)';
+    if (agg === 'composition' || agg === 'composite') return 'url(#composition)';
+    if (agg === 'aggregation' || agg === 'shared') return 'url(#aggregation)';
+    if (agg === 'generalization') return 'url(#generalization)';
     return undefined;
   };
 

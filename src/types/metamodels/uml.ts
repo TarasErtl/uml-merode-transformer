@@ -16,7 +16,7 @@ export interface UMLModel extends UMLBaseElement {
 /**
  * A union type for Classes and Associations
  */
-export type UMLPackagedElement = UMLClass | UMLAssociation; 
+export type UMLPackagedElement = UMLClass | UMLAssociation | UMLAssociationClass; 
 
 /**
  * Represents a UML Class, with its attributes and associations
@@ -36,6 +36,16 @@ export interface UMLAssociation extends UMLBaseElement {
 }
 
 /**
+ * Represents a UML Association Class, which is both a Class and an Association.
+ */
+export interface UMLAssociationClass extends UMLBaseElement {
+  readonly type: 'uml:AssociationClass';
+  attributes: readonly UMLAttribute[];
+  associationIds: readonly string[];
+  ends: readonly UMLAssociationEnd[];
+}
+
+/**
  * Represents a simple attribute within a UML Class.
  * its visibiliy, and the type of the value of the attribute
  */
@@ -44,16 +54,63 @@ export interface UMLAttribute extends UMLBaseElement {
 }
 
 /**
- * Describes one end of a UML Association, including its target class,
- * role, multiplicity, and optionally the aggregation kind.
+ * Possible types of association ends
  */
-export interface UMLAssociationEnd {
+export type UMLEndType = 'none' | 'shared' | 'composite' | 'generalization';
+
+/**
+ * Base interface for common properties of any association end
+ */
+export interface UMLAssociationEndBase {
   readonly targetClassId: string;
   readonly roleName?: string;
+  readonly endType: UMLEndType;
+}
+
+/**
+ * Represents a normal association end
+ */
+export interface UMLNormalAssociationEnd extends UMLAssociationEndBase {
+  readonly endType: 'none';
   readonly lowerBound: UMLLowerBound;
   readonly upperBound: UMLUpperBound;
-  readonly aggregation?: UMLAggregationKind;
 }
+
+/**
+ * Represents an aggregation end
+ */
+export interface UMLAggregationEnd extends UMLAssociationEndBase {
+  readonly endType: 'shared';
+  readonly lowerBound: UMLLowerBound;
+  readonly upperBound: UMLUpperBound;
+}
+
+/**
+ * Represents a composition end
+ */
+export interface UMLCompositionEnd extends UMLAssociationEndBase {
+  readonly endType: 'composite';
+  readonly lowerBound: UMLLowerBound;
+  readonly upperBound: UMLUpperBound;
+}
+
+/**
+ * Represents a generalization end (inheritance)
+ */
+export interface UMLGeneralizationEnd extends UMLAssociationEndBase {
+  readonly endType: 'generalization';
+  readonly generalizationRole: 'super' | 'sub';
+}
+
+/**
+ * Describes one end of a UML Relationship.
+ */
+export type UMLAssociationEnd = UMLNormalAssociationEnd | UMLAggregationEnd | UMLCompositionEnd | UMLGeneralizationEnd;
+
+/**
+ * A type representing a non-generalization end of an association.
+ */
+export type UMLRegularAssociationEnd = Exclude<UMLAssociationEnd, UMLGeneralizationEnd>;
 
 /**
  * Represents a generic element,,every element should have and id and a name
@@ -80,13 +137,3 @@ export const UMLUpperBound = {
   Unlimited: "*",
 } as const;
 export type UMLUpperBound = (typeof UMLUpperBound)[keyof typeof UMLUpperBound];
-
-/**
- * Values for the aggregation kind of a UML association end.
- */
-export const UMLAggregationKind = {
-  None: "none",
-  Shared: "shared",
-  Composite: "composite",
-} as const;
-export type UMLAggregationKind = (typeof UMLAggregationKind)[keyof typeof UMLAggregationKind];

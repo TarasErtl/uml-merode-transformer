@@ -1,9 +1,8 @@
 import { 
   type UMLAssociation, 
-  type UMLAssociationEnd, 
+  type UMLRegularAssociationEnd,
   UMLLowerBound, 
-  UMLUpperBound,
-  UMLAggregationKind,
+  UMLUpperBound
 } from '../types/metamodels/uml';
 
 /**
@@ -15,14 +14,14 @@ import {
  *         the second element is the id of the assumed master class
  *         the third element is the id of the assumed dependent class
  */
-export const checkExistenceDependency = (end1: UMLAssociationEnd, end2: UMLAssociationEnd): [boolean, string, string] => {
+export const checkExistenceDependency = (end1: UMLRegularAssociationEnd, end2: UMLRegularAssociationEnd): [boolean, string, string] => {
   if (end1.upperBound === UMLUpperBound.One && end1.lowerBound === UMLLowerBound.One) {
     return [true, end1.targetClassId, end2.targetClassId];
   }
   if (end2.upperBound === UMLUpperBound.One && end2.lowerBound === UMLLowerBound.One) {
     return [true, end2.targetClassId, end1.targetClassId];
   }
-  return [false, end1.targetClassId, end2.targetClassId];
+  return [false, '', ''];
 };
 
 /**
@@ -33,16 +32,39 @@ export const checkExistenceDependency = (end1: UMLAssociationEnd, end2: UMLAssoc
  *        the third element is the id of the class on the non-aggregation side
  */
 export const checkAggregationAssociation = (umlAssoc: UMLAssociation): [boolean, string, string] => {
-  const [end1, end2] = umlAssoc.ends;
-  let isAggregation: boolean | undefined;
-         
-  isAggregation = (end1.aggregation && end1.aggregation !== UMLAggregationKind.None)
-  if(isAggregation){
+  const ends = getRegularAssociationEnds(umlAssoc);
+  if (!ends) {
+    return [false, '', ''];
+  }
+
+  const [end1, end2] = ends;
+
+  if(end1.endType === 'shared' || end1.endType === 'composite'){
     return [true, end1.targetClassId, end2.targetClassId];
   }
-  isAggregation = (end2.aggregation && end2.aggregation !== UMLAggregationKind.None);
-  if(isAggregation){
+  if(end2.endType === 'shared' || end2.endType === 'composite'){
     return [true, end2.targetClassId, end1.targetClassId];
   }
-  return [false, end1.targetClassId, end2.targetClassId];
+         
+  return [false, '', ''];
 }
+
+/**
+ * Checks if a UML association represents a generalization.
+ * @param umlAssoc The UML association to check.
+ * @returns `true` if the association is a generalization, `false` otherwise.
+ */
+export const isGeneralizationAssociation = (umlAssoc: UMLAssociation): boolean => {
+  return umlAssoc.ends.some(end => end.endType === 'generalization');
+};
+
+/**
+ * Returns the association ends if the association is not a generalization, 
+ * safely casting them to UMLRegularAssociationEnd. Returns null otherwise.
+ */
+export const getRegularAssociationEnds = (umlAssoc: UMLAssociation): UMLRegularAssociationEnd[] | null => {
+  if (isGeneralizationAssociation(umlAssoc)) {
+    return null;
+  }
+  return umlAssoc.ends as UMLRegularAssociationEnd[];
+};

@@ -7,12 +7,13 @@ export interface XmiJsonData {
 
 export interface XmiJsonModel extends XmiJsonBaseElement {
   'xmi:type': 'uml:Model';
-  packagedElement?: (XmiJsonClass | XmiJsonAssociation)[];
+  packagedElement?: (XmiJsonClass | XmiJsonAssociation | XmiJsonAssociationClass)[];
 }
 
 export interface XmiJsonClass extends XmiJsonBaseElement {
   'xmi:type': 'uml:Class';
   ownedAttribute?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
+  generalization?: XmiJsonGeneralization | XmiJsonGeneralization[];
 }
 
 export interface XmiJsonAssociation extends XmiJsonBaseElement {
@@ -21,6 +22,17 @@ export interface XmiJsonAssociation extends XmiJsonBaseElement {
   ownedEnd?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
 }
 
+export interface XmiJsonAssociationClass extends XmiJsonBaseElement {
+  'xmi:type': 'uml:AssociationClass';
+  memberEnd?: string | string[];
+  ownedEnd?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
+  ownedAttribute?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
+  generalization?: XmiJsonGeneralization | XmiJsonGeneralization[];
+}
+
+export interface XmiJsonGeneralization extends XmiJsonBaseElement {
+  general: string;
+}
 /**
  * Represents an owned attribute of a class in the parsed XMI JSON.
  */

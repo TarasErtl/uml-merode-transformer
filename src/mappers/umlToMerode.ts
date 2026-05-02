@@ -2,6 +2,7 @@ import {
   type UMLIR,
   type UMLAssociation, 
   type UMLPackagedElement,
+  type UMLAssociationEnd,
 } from '../types/metamodels/uml';
 import {
   type MerodeIR,
@@ -12,7 +13,7 @@ import {
 import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAryAssociationProposal } from '../types/proposals';
 import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision} from '../types/decisions';
 import { createIntermediateClassForAssociation, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeHelpers';
-import { checkAggregationAssociation, checkExistenceDependency } from './merodeHeuristics';
+import { checkAggregationAssociation, checkExistenceDependency, getRegularAssociationEnds } from './merodeHeuristics';
 import NAryAssociationProposalCard from '../components/NAryAssociationProposalCard';
 
 /**
@@ -26,7 +27,10 @@ import NAryAssociationProposalCard from '../components/NAryAssociationProposalCa
  * @return a UnaryAssociationProposal if there was no decision for the unary association yet, otherwise null
  */
 const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): UnaryAssociationProposal | null=> {
-  const [end1, end2] = umlAssoc.ends;
+  const associationEnds = getRegularAssociationEnds(umlAssoc);
+  if (!associationEnds) return null;
+
+  const [end1, end2] = associationEnds;
   let classId: string = `${umlAssoc.id}_unary_Class`;
   let className: string = `${umlAssoc.name}_Class`;
   let assocName1: string = end1.roleName ?? '';
@@ -68,7 +72,10 @@ const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc:
  * @param decisions the Map of the decisions, to check if there is already a decision for the unary associatio
  */
 const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): BinaryAssociationProposal | null=> {
-  const [end1, end2] = umlAssoc.ends;
+  const associationEnds = getRegularAssociationEnds(umlAssoc);
+  if (!associationEnds) return null;
+
+  const [end1, end2] = associationEnds;
   let isExistenceDependent: boolean;
   let isAggregation: boolean;
   let masterClassId: string | null;
@@ -101,7 +108,7 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
   
   //case 1: existence dependency is assumed or decided
   if(isExistenceDependent){
-    const dependentEnd = umlAssoc.ends.find(end => end.targetClassId === dependentClassId);
+    const dependentEnd = associationEnds.find(end => end.targetClassId === dependentClassId);
 
     createMerodeAssociation(merodeIR
           , umlAssoc.id
@@ -161,7 +168,9 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
  * @returns 
  */
 const mapNaryAssociation = (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): NAryAssociationProposal | null => {
-    const ends = umlAssoc.ends;
+    const ends = getRegularAssociationEnds(umlAssoc);
+    if (!ends) return null;
+
     let className: string = `${umlAssoc.id}_Class`;
 
     //if a decision has been made, use the values

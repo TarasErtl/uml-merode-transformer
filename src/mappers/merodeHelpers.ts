@@ -1,6 +1,7 @@
 import { 
   type UMLAssociation, 
   type UMLAssociationEnd, 
+  type UMLGeneralizationEnd,
   UMLLowerBound, 
   UMLUpperBound,
 } from '../types/metamodels/uml';
@@ -21,11 +22,10 @@ import {
  * @return the id of the new class that has been created to represent the binary association
  */
 export const createIntermediateClassForAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, className: string, assocNames: string[]) => {
-  //extract the ends of the association that should be replaced
-  let ends: UMLAssociationEnd[] = [];
-  umlAssoc.ends.forEach(end => {
-    ends.push(end);
-  });
+  //extract the ends of the association that should be replaced, ignoring generalizations
+  const ends = umlAssoc.ends.filter(
+    (end): end is Exclude<UMLAssociationEnd, UMLGeneralizationEnd> => end.endType !== 'generalization'
+  );
 
   const classId: string = `${umlAssoc.id}_Class`;
   const assocIds: string[] = ends.map((_, index) => `${umlAssoc.id}_assoc${index + 1}`);
