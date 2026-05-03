@@ -284,6 +284,112 @@ const processGeneralizations = (
 };
 
 /**
+ * Processes all association classes, extracting their attributes, association IDs, and ends.
+ * @param packagedElements - The array of elements from the parsed XMI JSON.
+ * @param elementLookup - A lookup table mapping element IDs to their respective objects.
+ * @param classAssocMap - A map containing the pre-calculated relationships between class IDs and their associated association IDs.
+ * @returns An array containing the processed UMLAssociationClass objects.
+ */
+const processAssociationClasses = (
+  packagedElements: (XmiJsonClass | XmiJsonAssociation | XmiJsonAssociationClass)[],
+  elementLookup: Record<string, XmiJsonBaseElement | XmiJsonOwnedAttribute>,
+  classAssocMap: Record<string, Set<string>>
+): UMLAssociationClass[] => {
+  const associationClasses: UMLAssociationClass[] = [];
+
+  packagedElements.forEach(el => {
+    if (el["xmi:type"] === "uml:AssociationClass") {
+      const umlAssocClass = el as XmiJsonAssociationClass;
+      const classId = umlAssocClass["xmi:id"];
+
+      // 1. Process Attributes
+      const allAttributes = ensureArray<XmiJsonOwnedAttribute>(umlAssocClass.ownedAttribute);
+      const dataAttributes: UMLAttribute[] = allAttributes
+        .filter(attr => !attr.association)
+        .map(attr => {
+          let attrType = "String";
+          if (typeof attr.type === "string") {
+            attrType = attr.type;
+          } else if (attr.type && typeof attr.type === "object") {
+            if (attr.type.href) {
+              attrType = attr.type.href.split('#').pop() || "String";
+            } else if (attr.type["xmi:type"]) {
+              attrType = attr.type["xmi:type"].replace("uml:", "");
+            }
+          }
+          return {
+            id: attr["xmi:id"],
+            name: attr.name,
+            type: attrType,
+          };
+        }) as UMLAttribute[];
+
+      // 2. Process Ends
+      let memberEndIds: string[] = [];
+      if (typeof umlAssocClass.memberEnd === "string") {
+        memberEndIds = umlAssocClass.memberEnd.split(/\s+/);
+      } else if (Array.isArray(umlAssocClass.memberEnd)) {
+        memberEndIds = umlAssocClass.memberEnd;
+      }
+      memberEndIds = memberEndIds.filter(Boolean);
+
+      const ends = memberEndIds.map(id => {
+        const attr = elementLookup[id] as XmiJsonOwnedAttribute;
+        if (!attr || !attr.type) return null;
+
+        const targetClassId = typeof attr.type === 'string' 
+          ? attr.type 
+          : (attr.type["xmi:id"] || attr.type.href?.split('#').pop() || "unknown");
+
+        // Map the target class to this association
+        if (!classAssocMap[targetClassId]) {
+          classAssocMap[targetClassId] = new Set();
+        }
+        if (classId) {
+          classAssocMap[targetClassId].add(classId);
+        }
+
+        const { lower, upper } = mapMultiplicity(attr);
+        
+        const endType = attr.aggregation || 'none';
+        const baseEnd = {
+          targetClassId: targetClassId,
+          roleName: attr.name,
+          lowerBound: lower,
+          upperBound: upper,
+        };
+        
+        let end: UMLAssociationEnd;
+        if (endType === 'shared') {
+          end = { ...baseEnd, endType: 'shared' };
+        } else if (endType === 'composite') {
+          end = { ...baseEnd, endType: 'composite' };
+        } else {
+          end = { ...baseEnd, endType: 'none' };
+        }
+
+        return end;
+      }).filter(Boolean) as UMLAssociationEnd[];
+
+      associationClasses.push({
+        id: classId,
+        type: "uml:AssociationClass",
+        name: umlAssocClass.name ?? "",
+        attributes: dataAttributes,
+        associationIds: [], 
+        ends
+      });
+    }
+  });
+
+  associationClasses.forEach(ac => {
+    ac.associationIds = Array.from(classAssocMap[ac.id] || []).filter(Boolean);
+  });
+
+  return associationClasses;
+};
+
+/**
  * maps the raw XMI JSON data to our internal UML-IR format. It processes the model, classes, attributes, and associations, 
  * ensuring that all elements are correctly linked and multiplicities are handled
  * @param rawData the raw XMI JSON data from the XMI Parser
@@ -308,6 +414,9 @@ export const mapXmiToIR = (rawData: XmiJsonData): UMLIR | null => {
   //process Generalizations to extract them from classes and map them as associations
   const generalizations = processGeneralizations(packagedElements, classAssocMap);
 
+  //process Association Classes mapping both their attribute properties and ends properties
+  const associationClasses = processAssociationClasses(packagedElements, elementLookup, classAssocMap);
+
   //process Classes and assign the pre-calculated associations
   const classes = processClasses(packagedElements, classAssocMap);
 
@@ -316,7 +425,7 @@ export const mapXmiToIR = (rawData: XmiJsonData): UMLIR | null => {
       id: xmiModel["xmi:id"] || "model-root",
       type: "uml:Model",
       name: xmiModel.name ?? "",
-      packagedElement: [...classes, ...associations, ...generalizations]
+      packagedElement: [...classes, ...associations, ...generalizations, ...associationClasses]
     }
   };
 };

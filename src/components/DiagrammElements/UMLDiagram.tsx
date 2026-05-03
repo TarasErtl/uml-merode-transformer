@@ -10,7 +10,7 @@ import {
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
-import { UMLIR, UMLClass, UMLAssociation, UMLRegularAssociationEnd } from '../../types/metamodels/uml';
+import { UMLIR, UMLClass, UMLAssociation, UMLRegularAssociationEnd, UMLAssociationClass } from '../../types/metamodels/uml';
 import { nodeTypes, edgeTypes } from './UMLElements';
 
 /**
@@ -29,12 +29,13 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
     nodesep: 120,
     ranksep: 150,
     edgesep: 20,
-    ranker: 'network-simplex', 
+    ranker: 'longest-path', 
   });
 
   nodes.forEach((node) => {
     const isNAry = node.type === 'nAryNode';
-    dagreGraph.setNode(node.id, { width: isNAry ? 35 : 260, height: isNAry ? 35 : 160 });
+    const isAnchor = node.type === 'anchorNode';
+    dagreGraph.setNode(node.id, { width: isAnchor ? 1 : isNAry ? 35 : 260, height: isAnchor ? 1 : isNAry ? 35 : 160 });
   });
 
   edges.forEach((edge) => {
@@ -46,9 +47,12 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   const layoutedNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     const isNAry = node.type === 'nAryNode';
+    const isAnchor = node.type === 'anchorNode';
+    const offsetX = isAnchor ? 0.5 : isNAry ? 17.5 : 130;
+    const offsetY = isAnchor ? 0.5 : isNAry ? 17.5 : 80;
     return {
       ...node,
-      position: { x: nodeWithPosition.x - (isNAry ? 17.5 : 130), y: nodeWithPosition.y - (isNAry ? 17.5 : 80) },
+      position: { x: nodeWithPosition.x - offsetX, y: nodeWithPosition.y - offsetY },
     };
   });
 
@@ -104,10 +108,10 @@ const getBestHandlePair = (sourceNode: Node, targetNode: Node): { sourcePos: Pos
   let bestSourcePos: Position = Position.Right;
   let bestTargetPos: Position = Position.Left;
 
-  const sourceNodeWidth = sourceNode.type === 'nAryNode' ? 35 : 260;
-  const sourceNodeHeight = sourceNode.type === 'nAryNode' ? 35 : 160;
-  const targetNodeWidth = targetNode.type === 'nAryNode' ? 35 : 260;
-  const targetNodeHeight = targetNode.type === 'nAryNode' ? 35 : 160;
+  const sourceNodeWidth = sourceNode.type === 'anchorNode' ? 1 : sourceNode.type === 'nAryNode' ? 35 : 260;
+  const sourceNodeHeight = sourceNode.type === 'anchorNode' ? 1 : sourceNode.type === 'nAryNode' ? 35 : 160;
+  const targetNodeWidth = targetNode.type === 'anchorNode' ? 1 : targetNode.type === 'nAryNode' ? 35 : 260;
+  const targetNodeHeight = targetNode.type === 'anchorNode' ? 1 : targetNode.type === 'nAryNode' ? 35 : 160;
 
   for (const sPos of visibleSourcePositions) {
     for (const tPos of visibleTargetPositions) {
@@ -152,8 +156,8 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
     const initialEdges: Edge[] = [];
 
     // Extract specific element types from the Intermediate Representation
-    const classes = umlIR.model.packagedElement.filter((el): el is UMLClass => el.type === 'uml:Class');
-    const associations = umlIR.model.packagedElement.filter((el): el is UMLAssociation => el.type === 'uml:Association');
+    const classes = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Class' || el.type === 'uml:AssociationClass') as UMLClass[];
+    const associations = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Association' || el.type === 'uml:AssociationClass') as UMLAssociation[];
 
     // Create visual nodes for every UML class
     classes.forEach((cls) => {
@@ -197,18 +201,64 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
 
         const getAggregationString = (type: string) => type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
 
-        initialEdges.push({
-          id: assoc.id,
-          source: end1.targetClassId,
-          target: end2.targetClassId,
-          type: 'umlEdge',
-          data: {
-            sourceLabel: label1,
-            targetLabel: label2,
-            sourceAggregation: getAggregationString(end1.endType),
-            targetAggregation: getAggregationString(end2.endType),
-          }
-        });
+        if (assoc.type === 'uml:AssociationClass') {
+          const anchorId = `${assoc.id}-anchor`;
+          
+          initialNodes.push({
+            id: anchorId,
+            type: 'anchorNode',
+            position: { x: 0, y: 0 },
+            data: {}
+          });
+
+          initialEdges.push({
+            id: `${assoc.id}-half1`,
+            source: end1.targetClassId,
+            target: anchorId,
+            type: 'umlEdge',
+            data: {
+              sourceLabel: label1,
+              targetLabel: '', // Label only at the class side
+              sourceAggregation: getAggregationString(end1.endType),
+              targetAggregation: 'none',
+            }
+          });
+
+          initialEdges.push({
+            id: `${assoc.id}-half2`,
+            source: anchorId,
+            target: end2.targetClassId,
+            type: 'umlEdge',
+            data: {
+              sourceLabel: '', // Label only at the class side
+              targetLabel: label2,
+              sourceAggregation: 'none',
+              targetAggregation: getAggregationString(end2.endType),
+            }
+          });
+
+          initialEdges.push({
+            id: `${assoc.id}-dashed-link`,
+            source: assoc.id,
+            target: anchorId,
+            type: 'default',
+            animated: false,
+            style: { strokeDasharray: '5,5', stroke: '#aaa', strokeWidth: 1.5 }
+          });
+        } else {
+          initialEdges.push({
+            id: assoc.id,
+            source: end1.targetClassId,
+            target: end2.targetClassId,
+            type: 'umlEdge',
+            data: {
+              sourceLabel: label1,
+              targetLabel: label2,
+              sourceAggregation: getAggregationString(end1.endType),
+              targetAggregation: getAggregationString(end2.endType),
+            }
+          });
+        }
       } else if (assoc.ends.length > 2) {
         // N-ary association: map to a central diamond node and multiple connecting edges
         initialNodes.push({

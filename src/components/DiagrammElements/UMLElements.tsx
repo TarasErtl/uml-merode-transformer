@@ -90,6 +90,25 @@ export const NAryNode = ({ data }: any) => {
 };
 
 /**
+ * Custom Anchor Node for Association Classes
+ * Invisible node serving as a connection point in the middle of an association edge.
+ */
+export const AnchorNode = () => {
+  return (
+    <div style={{ width: '1px', height: '1px', visibility: 'hidden' }}>
+      <Handle type="target" position={Position.Top} id="top-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Top} id="top-source" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Bottom} id="bottom-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="bottom-source" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Left} id="left-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Left} id="left-source" style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Right} id="right-target" style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Right} id="right-source" style={{ opacity: 0 }} />
+    </div>
+  );
+};
+
+/**
  * Custom Edge component for UML relationships.
  * Handles the rendering of association paths, multiplicity labels, 
  * and specific markers for aggregation or composition.
@@ -204,5 +223,5 @@ export const UMLEdge = ({
   );
 };
 
-export const nodeTypes = { umlClass: ClassNode, nAryNode: NAryNode };
+export const nodeTypes = { umlClass: ClassNode, nAryNode: NAryNode, anchorNode: AnchorNode };
 export const edgeTypes = { umlEdge: UMLEdge };
