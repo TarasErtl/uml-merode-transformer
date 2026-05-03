@@ -26,10 +26,10 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   
   dagreGraph.setGraph({ 
     rankdir: direction, 
-    nodesep: 120,
-    ranksep: 150,
-    edgesep: 20,
-    ranker: 'longest-path', 
+    nodesep: 100,
+    ranksep: 50,
+    edgesep: 300,
+    ranker: 'network-simplex',
   });
 
   nodes.forEach((node) => {
@@ -57,80 +57,6 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   });
 
   return { nodes: layoutedNodes, edges };
-};
-
-/**
- * Helper function to calculate the absolute coordinates of a specific handle on a node.
- * Used to determine the physical distance between connection points.
- * 
- * @param node The React Flow node.
- * @param handlePosition The position of the handle (Top, Bottom, Left, Right).
- * @param nodeWidth The visual width of the node.
- * @param nodeHeight The visual height of the node.
- * @returns The absolute x and y coordinates on the canvas.
- */
-const getHandleAbsoluteCoordinates = (node: Node, handlePosition: Position, nodeWidth: number, nodeHeight: number) => {
-  let x = node.position.x;
-  let y = node.position.y;
-
-  switch (handlePosition) {
-    case Position.Top:
-      x += nodeWidth / 2;
-      break;
-    case Position.Bottom:
-      x += nodeWidth / 2;
-      y += nodeHeight;
-      break;
-    case Position.Left:
-      y += nodeHeight / 2;
-      break;
-    case Position.Right:
-      x += nodeWidth;
-      y += nodeHeight / 2;
-      break;
-  }
-  return { x, y };
-};
-
-/**
- * Determines the best pair of handles between a source and target node based on the shortest euclidean distance.
- * This prevents edges from routing through the nodes themselves or taking unnecessarily long paths.
- * 
- * @param sourceNode The starting node.
- * @param targetNode The target node.
- * @returns The optimal combination of source and target handle positions.
- */
-const getBestHandlePair = (sourceNode: Node, targetNode: Node): { sourcePos: Position, targetPos: Position } => {
-  const visibleSourcePositions = [Position.Bottom, Position.Right];
-  const visibleTargetPositions = [Position.Top, Position.Left];
-
-  let minDistance = Infinity;
-  let bestSourcePos: Position = Position.Right;
-  let bestTargetPos: Position = Position.Left;
-
-  const sourceNodeWidth = sourceNode.type === 'anchorNode' ? 1 : sourceNode.type === 'nAryNode' ? 35 : 260;
-  const sourceNodeHeight = sourceNode.type === 'anchorNode' ? 1 : sourceNode.type === 'nAryNode' ? 35 : 160;
-  const targetNodeWidth = targetNode.type === 'anchorNode' ? 1 : targetNode.type === 'nAryNode' ? 35 : 260;
-  const targetNodeHeight = targetNode.type === 'anchorNode' ? 1 : targetNode.type === 'nAryNode' ? 35 : 160;
-
-  for (const sPos of visibleSourcePositions) {
-    for (const tPos of visibleTargetPositions) {
-      const sourceCoords = getHandleAbsoluteCoordinates(sourceNode, sPos, sourceNodeWidth, sourceNodeHeight);
-      const targetCoords = getHandleAbsoluteCoordinates(targetNode, tPos, targetNodeWidth, targetNodeHeight);
-
-      const distance = Math.sqrt(
-        Math.pow(sourceCoords.x - targetCoords.x, 2) +
-        Math.pow(sourceCoords.y - targetCoords.y, 2)
-      );
-
-      if (distance < minDistance) {
-        minDistance = distance;
-        bestSourcePos = sPos;
-        bestTargetPos = tPos;
-      }
-    }
-  }
-  return { sourcePos: bestSourcePos, targetPos: bestTargetPos };
 };
 
 interface UMLDiagramProps {
@@ -290,172 +216,101 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
     // Apply auto-layout to position all elements hierarchically
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(initialNodes, initialEdges, 'TB');
 
-    // Track the usage of handles to prevent multiple edges from overlapping at the exact same anchor point
-    const classNodeHandleUsage: Map<string, Set<string>> = new Map();
-    const nAryNodeSourceHandleUsage: Map<string, Map<Position, number>> = new Map();
-
-    /**
-     * Finds an available handle for a given node, prioritizing from a list of preferred handle positions.
-     * It ensures that if a handle is free, it's picked, otherwise falls back to other candidates.
-     * @param nodeId The ID of the node.
-     * @param handleType The type of handle ('source' or 'target').
-     * @param preferredPositions An ordered list of handle positions to try first. These should be visible handles.
-     * @returns The ID of an available handle.
-     */
-    const getAvailableClassNodeHandle = (nodeId: string, handleType: 'source' | 'target', preferredPositions: Position[]): string => {
-      if (!classNodeHandleUsage.has(nodeId)) {
-        classNodeHandleUsage.set(nodeId, new Set<string>());
-      }
-      const nodeUsedHandles = classNodeHandleUsage.get(nodeId)!;
-
-      const preferredHandleIds = preferredPositions.map(pos => `${pos}-${handleType}`);
-
-      for (const handleId of preferredHandleIds) {
-        if (!nodeUsedHandles.has(handleId)) {
-          nodeUsedHandles.add(handleId);
-          return handleId;
-        }
-      }
-
-      let fallbackCandidates: Position[] = [];
-      if (handleType === 'source') {
-        fallbackCandidates = [Position.Right, Position.Bottom];
-      } else {
-        fallbackCandidates = [Position.Left, Position.Top];
-      }
-
-      const uniqueFallbackCandidates = fallbackCandidates.filter(pos => !preferredPositions.includes(pos));
-      const uniqueFallbackHandleIds = uniqueFallbackCandidates.map(pos => `${pos}-${handleType}`);
-
-      for (const handleId of uniqueFallbackHandleIds) {
-        if (!nodeUsedHandles.has(handleId)) {
-          nodeUsedHandles.add(handleId);
-          return handleId;
-        }
-      }
-
-      if (preferredHandleIds.length > 0) {
-        nodeUsedHandles.add(preferredHandleIds[0]);
-        return preferredHandleIds[0];
-      }
-
-      return handleType === 'source' ? 'bottom-source' : 'top-target';
+    // --- GLOBAL HANDLE ASSIGNMENT (DEFER STRATEGY) ---
+    // Calculate the ideal angles for all connections based on their final
+    // layout positions, then distribute the handles globally and conflict-free per node.
+    const finalEdges = [...layoutedEdges];
+    
+    const getNodeCenter = (node: Node) => {
+      const width = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 260;
+      const height = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 160;
+      return { x: node.position.x + width / 2, y: node.position.y + height / 2 };
     };
 
-    /**
-     * Finds the best source handle for an n-ary node, prioritizing uniform distribution
-     * and then the side closest to the target node.
-     * @param nAryNodeId The ID of the n-ary node.
-     * @param targetNode The target class node.
-     * @returns The ID of the chosen source handle on the n-ary node.
-     */
-    const getNAryBalancedSourceHandle = (nAryNodeId: string, targetNode: Node): string => {
-      if (!nAryNodeSourceHandleUsage.has(nAryNodeId)) {
-        nAryNodeSourceHandleUsage.set(nAryNodeId, new Map<Position, number>([
-          [Position.Top, 0],
-          [Position.Right, 0],
-          [Position.Bottom, 0],
-          [Position.Left, 0],
-        ]));
-      }
-      const nodeUsage = nAryNodeSourceHandleUsage.get(nAryNodeId)!;
+    const nodeConnections = new Map<string, { edge: Edge, type: 'source' | 'target', angle: number, dist: number }[]>();
+    layoutedNodes.forEach(n => nodeConnections.set(n.id, []));
 
-      const nAryNode = layoutedNodes.find(n => n.id === nAryNodeId);
-      if (!nAryNode) {
-        return 'bottom-source';
-      }
-
-      const dx = targetNode.position.x - nAryNode.position.x;
-
-      let preferredSourcePos: Position;
-      const horizontalThreshold = 50;
-
-      if (dx < -horizontalThreshold) {
-        preferredSourcePos = Position.Left;
-      } else if (dx > horizontalThreshold) {
-        preferredSourcePos = Position.Right;
-      } else {
-        preferredSourcePos = Position.Bottom;
-      }
-
-      const allSourcePositions: Position[] = [Position.Top, Position.Right, Position.Bottom, Position.Left];
-      allSourcePositions.sort((a, b) => {
-        const usageA = nodeUsage.get(a) || 0;
-        const usageB = nodeUsage.get(b) || 0;
-
-        if (usageA !== usageB) {
-          return usageA - usageB;
-        }
-        if (a === preferredSourcePos && b !== preferredSourcePos) return -1;
-        if (b === preferredSourcePos && a !== preferredSourcePos) return 1;
-        
-        return 0;
-      });
-
-      const chosenPosition = allSourcePositions[0];
-      nodeUsage.set(chosenPosition, (nodeUsage.get(chosenPosition) || 0) + 1);
-      return `${chosenPosition}-source`;
-    };
-
-    const finalEdges = layoutedEdges.map((edge) => {
-      const sourceNode = layoutedNodes.find((n) => n.id === edge.source);
-      const targetNode = layoutedNodes.find((n) => n.id === edge.target);
-
+    // 1. Collect all edges, calculate the ideal angle and distance
+    finalEdges.forEach(edge => {
+      const sourceNode = layoutedNodes.find(n => n.id === edge.source);
+      const targetNode = layoutedNodes.find(n => n.id === edge.target);
+      
       if (sourceNode && targetNode) {
         if (sourceNode.id === targetNode.id) {
-          const nodeId = sourceNode.id;
-          const nodeUsedHandles = classNodeHandleUsage.get(nodeId) || new Set<string>();
-
-          const selfLoopHandlePairs = [
-            { source: Position.Left, target: Position.Bottom },
-            { source: Position.Top, target: Position.Right },
-            { source: Position.Right, target: Position.Top },
-            { source: Position.Bottom, target: Position.Left }
-          ];
-
-          let chosenSourcePos: Position = Position.Right;
-          let chosenTargetPos: Position = Position.Top;
-
-          let foundFreePair = false;
-          for (const pair of selfLoopHandlePairs) {
-            const sourceHandleId = `${pair.source}-source`;
-            const targetHandleId = `${pair.target}-target`;
-            if (!nodeUsedHandles.has(sourceHandleId) && !nodeUsedHandles.has(targetHandleId)) {
-              chosenSourcePos = pair.source;
-              chosenTargetPos = pair.target;
-              foundFreePair = true;
-              break;
-            }
-          }
-
-          edge.sourceHandle = getAvailableClassNodeHandle(nodeId, 'source', [chosenSourcePos]);
-          edge.targetHandle = getAvailableClassNodeHandle(nodeId, 'target', [chosenTargetPos]);
-        } else if (sourceNode.type === 'nAryNode') {
-          const nAryNode = sourceNode;
-          const classNode = targetNode;
-
-          const dx = classNode.position.x - nAryNode.position.x;
-
-          let classTargetPos: Position;
-          const alignmentThreshold = 50;
-
-          if (Math.abs(dx) < alignmentThreshold) {
-            classTargetPos = Position.Top;
-          } else if (dx < 0) {
-            classTargetPos = Position.Left;
-          } else {
-            classTargetPos = Position.Right;
-          }
-          edge.sourceHandle = getNAryBalancedSourceHandle(nAryNode.id, classNode);
-          edge.targetHandle = getAvailableClassNodeHandle(classNode.id, 'target', [classTargetPos]);
+          // Handle self-loops by assigning fixed angles to encourage a specific loop shape (e.g., right-to-top).
+          // These will be processed by the global assignment logic to avoid collisions.
+          nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: 0, dist: 0 }); // Prefers Right
+          nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: -90, dist: 0 }); // Prefers Top
+          edge.data = { ...edge.data, isSelfLoop: true }; // Mark for special rendering
         } else {
-          const { sourcePos, targetPos } = getBestHandlePair(sourceNode, targetNode);
-
-          edge.sourceHandle = getAvailableClassNodeHandle(sourceNode.id, 'source', [sourcePos]);
-          edge.targetHandle = getAvailableClassNodeHandle(targetNode.id, 'target', [targetPos]);
+          const sCenter = getNodeCenter(sourceNode);
+          const tCenter = getNodeCenter(targetNode);
+          
+          // Angle in degrees (-180 to 180) between centers
+          const angleST = Math.atan2(tCenter.y - sCenter.y, tCenter.x - sCenter.x) * 180 / Math.PI;
+          const angleTS = Math.atan2(sCenter.y - tCenter.y, sCenter.x - tCenter.x) * 180 / Math.PI;
+          
+          // Calculate distance
+          const dist = Math.hypot(tCenter.x - sCenter.x, tCenter.y - sCenter.y);
+          
+          nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: angleST, dist });
+          nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: angleTS, dist });
         }
       }
-      return edge;
+    });
+
+    // 2. Conflict-free assignment based on distance and dynamic angle
+    nodeConnections.forEach((connections) => {
+      // Process longest edges first. If equal length, sort by angle.
+      // This allows distant connections to get the most direct handle, while close connections tend to evade.
+      connections.sort((a, b) => b.dist - a.dist || a.angle - b.angle);
+
+      // Track usage for both sources and targets combined to prevent visual overlap
+      const positionUsage = new Map<Position, number>([
+        [Position.Top, 0],
+        [Position.Right, 0],
+        [Position.Bottom, 0],
+        [Position.Left, 0]
+      ]);
+        
+      connections.forEach(conn => {
+        const handleAngles: Record<string, number> = {
+          [Position.Right]: 0,
+          [Position.Bottom]: 90,
+          [Position.Left]: 180,
+          [Position.Top]: -90
+        };
+
+        const getAngleDiff = (a1: number, a2: number) => {
+          const diff = Math.abs(a1 - a2) % 360;
+          return diff > 180 ? 360 - diff : diff;
+        };
+
+        const positions = [Position.Right, Position.Bottom, Position.Left, Position.Top];
+        
+        // Dynamic fallback order: Handles closest to the ideal angle are preferred
+        positions.sort((p1, p2) => getAngleDiff(conn.angle, handleAngles[p1]) - getAngleDiff(conn.angle, handleAngles[p2]));
+        
+        // Find the position with the lowest usage, based on the calculated order
+        let bestPos = positions[0];
+        let minUsage = Infinity;
+        
+        for (const pos of positions) {
+          const usage = positionUsage.get(pos)!;
+          if (usage < minUsage) {
+            minUsage = usage;
+            bestPos = pos;
+            if (minUsage === 0) break; // Perfect, it's completely free
+          }
+        }
+        
+        // Mark position as used
+        positionUsage.set(bestPos, positionUsage.get(bestPos)! + 1);
+        
+        // Assign handle to edge
+        if (conn.type === 'source') conn.edge.sourceHandle = `${bestPos}-source`;
+        else conn.edge.targetHandle = `${bestPos}-target`;
+      });
     });
 
     setNodes(layoutedNodes);
