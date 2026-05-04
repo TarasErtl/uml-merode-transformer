@@ -55,6 +55,154 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   return { nodes: layoutedNodes, edges };
 };
 
+/**
+ * Transforms the custom Merode Intermediate Representation (MerodeIR) into initial React Flow nodes and edges.
+ */
+const buildMerodeElements = (merodeIR: MerodeIR) => {
+  const initialNodes: Node[] = [];
+  const initialEdges: Edge[] = [];
+
+  // Group generic elements into classes and associations using structural properties
+  const elements = merodeIR.model.elements;
+  const classes = elements.filter((el: any) => el.type === 'merode:Class' || el.attributes !== undefined);
+  const associations = elements.filter((el: any) => el.type === 'merode:Association' || el.masterClassId !== undefined);
+
+  // Create visual nodes for every MERODE class
+  classes.forEach((cls: any) => {
+    initialNodes.push({
+      id: cls.id,
+      type: 'merodeClass',
+      position: { x: 0, y: 0 },
+      data: { label: cls.name, attributes: cls.attributes }
+    });
+  });
+
+  // Process existence dependencies into directed edges (Master -> Dependent)
+  associations.forEach((assoc: any) => {
+    const multiplicity = assoc.multiplicity || '';
+    const isOptional = multiplicity.startsWith('0');
+    const isMultiple = multiplicity.endsWith('*') || multiplicity.endsWith('n') || multiplicity.endsWith('m') || multiplicity === '*';
+
+    initialEdges.push({
+      id: assoc.id,
+      source: assoc.masterClassId,
+      target: assoc.dependentClassId,
+      type: 'merodeEdge',
+      data: {
+        targetLabel: `${assoc.roleName || ''}`.trim(),
+        isOptional,
+        isMultiple
+      }
+    });
+  });
+
+  return { initialNodes, initialEdges };
+};
+
+/**
+ * Calculates the center of a given layouted node to determine the optimal connection angle.
+ */
+const getNodeCenter = (node: Node) => {
+  const width = 260;
+  const height = 160;
+  return { x: node.position.x + width / 2, y: node.position.y + height / 2 };
+};
+
+/**
+ * Resolves layout routing globally by determining the best anchor points for edges based on angles and distances.
+ * Fallbacks are used if preferred positions are already taken by other edges.
+ */
+const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
+  const finalEdges = [...layoutedEdges];
+  const nodeConnections = new Map<string, { edge: Edge, type: 'source' | 'target', angle: number, dist: number }[]>();
+  layoutedNodes.forEach(n => nodeConnections.set(n.id, []));
+
+  // 1. Collect all edges, calculate the ideal angle and distance
+  finalEdges.forEach(edge => {
+    const sourceNode = layoutedNodes.find(n => n.id === edge.source);
+    const targetNode = layoutedNodes.find(n => n.id === edge.target);
+    
+    if (sourceNode && targetNode) {
+      if (sourceNode.id === targetNode.id) {
+        // Handle self-loops by assigning fixed angles to encourage a specific loop shape (e.g., right-to-top).
+        // These will be processed by the global assignment logic to avoid collisions.
+        nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: 0, dist: 0 }); // Prefers Right
+        nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: -90, dist: 0 }); // Prefers Top
+        edge.data = { ...edge.data, isSelfLoop: true }; // Mark for special rendering
+      } else {
+        const sCenter = getNodeCenter(sourceNode);
+        const tCenter = getNodeCenter(targetNode);
+        
+        // Angle in degrees (-180 to 180) between centers
+        const angleST = Math.atan2(tCenter.y - sCenter.y, tCenter.x - sCenter.x) * 180 / Math.PI;
+        const angleTS = Math.atan2(sCenter.y - tCenter.y, sCenter.x - tCenter.x) * 180 / Math.PI;
+        
+        // Calculate distance
+        const dist = Math.hypot(tCenter.x - sCenter.x, tCenter.y - sCenter.y);
+        
+        nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: angleST, dist });
+        nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: angleTS, dist });
+      }
+    }
+  });
+
+  // 2. Conflict-free assignment based on distance and dynamic angle
+  nodeConnections.forEach((connections) => {
+    // Process longest edges first. If equal length, sort by angle.
+    // This allows distant connections to get the most direct handle, while close connections tend to evade.
+    connections.sort((a, b) => b.dist - a.dist || a.angle - b.angle);
+
+    // Track usage for both sources and targets combined to prevent visual overlap
+    const positionUsage = new Map<Position, number>([
+      [Position.Top, 0],
+      [Position.Right, 0],
+      [Position.Bottom, 0],
+      [Position.Left, 0]
+    ]);
+      
+    connections.forEach(conn => {
+      const handleAngles: Record<string, number> = {
+        [Position.Right]: 0,
+        [Position.Bottom]: 90,
+        [Position.Left]: 180,
+        [Position.Top]: -90
+      };
+
+      const getAngleDiff = (a1: number, a2: number) => {
+        const diff = Math.abs(a1 - a2) % 360;
+        return diff > 180 ? 360 - diff : diff;
+      };
+
+      const positions = [Position.Right, Position.Bottom, Position.Left, Position.Top];
+      
+      // Dynamic fallback order: Handles closest to the ideal angle are preferred
+      positions.sort((p1, p2) => getAngleDiff(conn.angle, handleAngles[p1]) - getAngleDiff(conn.angle, handleAngles[p2]));
+      
+      // Find the position with the lowest usage, based on the calculated order
+      let bestPos = positions[0];
+      let minUsage = Infinity;
+      
+      for (const pos of positions) {
+        const usage = positionUsage.get(pos)!;
+        if (usage < minUsage) {
+          minUsage = usage;
+          bestPos = pos;
+          if (minUsage === 0) break; // Perfect, it's completely free
+        }
+      }
+      
+      // Mark position as used
+      positionUsage.set(bestPos, positionUsage.get(bestPos)! + 1);
+      
+      // Assign handle to edge
+      if (conn.type === 'source') conn.edge.sourceHandle = `${bestPos}-source`;
+      else conn.edge.targetHandle = `${bestPos}-target`;
+    });
+  });
+
+  return finalEdges;
+};
+
 interface MERODEDiagramProps {
   merodeIR: MerodeIR | null;
 }
@@ -75,117 +223,14 @@ export default function MERODEDiagram({ merodeIR }: MERODEDiagramProps) {
       return;
     }
 
-    const initialNodes: Node[] = [];
-    const initialEdges: Edge[] = [];
+    // 1. Build graphical representation format
+    const { initialNodes, initialEdges } = buildMerodeElements(merodeIR);
 
-    // Group generic elements into classes and associations using structural properties
-    const elements = merodeIR.model.elements;
-    const classes = elements.filter((el: any) => el.type === 'merode:Class' || el.attributes !== undefined);
-    const associations = elements.filter((el: any) => el.type === 'merode:Association' || el.masterClassId !== undefined);
-
-    // Create visual nodes for every MERODE class
-    classes.forEach((cls: any) => {
-      initialNodes.push({
-        id: cls.id,
-        type: 'merodeClass',
-        position: { x: 0, y: 0 },
-        data: { label: cls.name, attributes: cls.attributes }
-      });
-    });
-
-    // Process existence dependencies into directed edges (Master -> Dependent)
-    associations.forEach((assoc: any) => {
-      const multiplicity = assoc.multiplicity || '';
-      const isOptional = multiplicity.startsWith('0');
-      const isMultiple = multiplicity.endsWith('*') || multiplicity.endsWith('n') || multiplicity.endsWith('m') || multiplicity === '*';
-
-      initialEdges.push({
-        id: assoc.id,
-        source: assoc.masterClassId,
-        target: assoc.dependentClassId,
-        type: 'merodeEdge',
-        data: {
-          targetLabel: `${assoc.roleName || ''}`.trim(),
-          isOptional,
-          isMultiple
-        }
-      });
-    });
-
-    // Apply top-down auto-layout to enforce the hierarchical structure
+    // 2. Apply auto-layout via dagre
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(initialNodes, initialEdges, 'TB');
 
-    // Track the usage of specific connection handles to fan out multiple incoming/outgoing edges smoothly
-    const targetHandleUsage = new Map<string, number>();
-    const sourceHandleUsage = new Map<string, number>();
-
-    /**
-     * Determines the optimal connection handle for a node based on its spatial relation to the connected node.
-     * Distributes overlapping edges to adjacent connection points (left, center, right).
-     * 
-     * @param nodeId The ID of the node.
-     * @param type Whether the handle is acting as 'source' or 'target'.
-     * @param sourceNode The origin node of the edge.
-     * @param targetNode The destination node of the edge.
-     * @param pairedHandle The handle already chosen on the opposite side, used to align straight vertical edges.
-     * @returns The ID of the best available handle.
-     */
-    const getAvailableHandle = (nodeId: string, type: 'source' | 'target', sourceNode: Node, targetNode: Node, pairedHandle?: string): string => {
-      const usageMap = type === 'source' ? sourceHandleUsage : targetHandleUsage;
-      
-      const dx = targetNode.position.x - sourceNode.position.x;
-      const threshold = 100;
-
-      let preferredHandles: string[] = [];
-
-      if (type === 'source') {
-        if (dx < -threshold) preferredHandles = ['bottom-source-left', 'bottom-source-center', 'bottom-source-right'];
-        else if (dx > threshold) preferredHandles = ['bottom-source-right', 'bottom-source-center', 'bottom-source-left'];
-        else preferredHandles = ['bottom-source-center', 'bottom-source-left', 'bottom-source-right'];
-      } else {
-        if (dx > threshold) {
-          preferredHandles = ['left-target', 'top-target-left', 'top-target-center'];
-        } else if (dx < -threshold) {
-          preferredHandles = ['right-target', 'top-target-right', 'top-target-center'];
-        } else {
-          if (pairedHandle?.includes('left')) preferredHandles = ['top-target-left', 'top-target-center', 'top-target-right'];
-          else if (pairedHandle?.includes('right')) preferredHandles = ['top-target-right', 'top-target-center', 'top-target-left'];
-          else preferredHandles = ['top-target-center', 'top-target-left', 'top-target-right'];
-        }
-      }
-
-      let bestHandle = preferredHandles[0];
-      let minUsage = usageMap.get(`${nodeId}-${bestHandle}`) || 0;
-
-      for (const handle of preferredHandles) {
-        const usage = usageMap.get(`${nodeId}-${handle}`) || 0;
-        if (usage < minUsage) {
-          minUsage = usage;
-          bestHandle = handle;
-        }
-      }
-      usageMap.set(`${nodeId}-${bestHandle}`, minUsage + 1);
-      return bestHandle;
-    };
-
-    const finalEdges = layoutedEdges.map((edge) => {
-      const sourceNode = layoutedNodes.find((n) => n.id === edge.source);
-      const targetNode = layoutedNodes.find((n) => n.id === edge.target);
-
-      if (sourceNode && targetNode) {
-        if (sourceNode.id === targetNode.id) {
-          // Handle unary associations (self-loops) by forcing them to the side and top
-          edge.data = { ...edge.data, isSelfLoop: true };
-          edge.sourceHandle = 'right-source';
-          edge.targetHandle = 'top-target-center';
-        } else {
-          // Normal existence dependencies: calculate dynamic routing to prevent overlaps
-          edge.sourceHandle = getAvailableHandle(sourceNode.id, 'source', sourceNode, targetNode);
-          edge.targetHandle = getAvailableHandle(targetNode.id, 'target', sourceNode, targetNode, edge.sourceHandle);
-        }
-      }
-      return edge;
-    });
+    // 3. Prevent overlaps by smartly routing edges
+    const finalEdges = assignOptimalHandles(layoutedNodes, layoutedEdges);
 
     setNodes(layoutedNodes);
     setEdges(finalEdges);

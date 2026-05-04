@@ -59,6 +59,254 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   return { nodes: layoutedNodes, edges };
 };
 
+/**
+ * Maps a UML aggregation string from the metamodel to the correct diagram marker.
+ */
+const getAggregationString = (type: string) => 
+  type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
+
+/**
+ * Transforms the raw UML Intermediate Representation (UMLIR) into initial React Flow nodes and edges.
+ */
+const buildUmlElements = (umlIR: UMLIR) => {
+  const initialNodes: Node[] = [];
+  const initialEdges: Edge[] = [];
+
+  // Extract specific element types from the Intermediate Representation
+  const classes = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Class' || el.type === 'uml:AssociationClass') as UMLClass[];
+  const associations = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Association' || el.type === 'uml:AssociationClass') as UMLAssociation[];
+
+  // Create visual nodes for every UML class
+  classes.forEach((cls) => {
+    initialNodes.push({
+      id: cls.id,
+      type: 'umlClass',
+      position: { x: 0, y: 0 },
+      data: { label: cls.name, attributes: cls.attributes }
+    });
+  });
+
+  // Process UML associations into visual edges (for binary) or diamond nodes + edges (for n-ary)
+  associations.forEach((assoc) => {
+    const isGeneralization = assoc.ends.some((end) => end.endType === 'generalization');
+
+    if (isGeneralization && assoc.ends.length === 2) {
+      const superclassEnd = assoc.ends.find((end) => end.endType === 'generalization');
+      const subclassEnd = assoc.ends.find((end) => end.endType !== 'generalization');
+
+      if (superclassEnd && subclassEnd) {
+        initialEdges.push({
+          id: assoc.id,
+          source: subclassEnd.targetClassId,
+          target: superclassEnd.targetClassId,
+          type: 'umlEdge',
+          data: {
+            sourceLabel: '',
+            targetLabel: '',
+            sourceAggregation: 'none',
+            targetAggregation: 'generalization',
+          }
+        });
+      }
+    } else if (assoc.ends.length === 2) {
+      // Binary association: map directly to a single React Flow edge
+      const end1 = assoc.ends[0] as UMLRegularAssociationEnd;
+      const end2 = assoc.ends[1] as UMLRegularAssociationEnd;
+      
+      const label1 = `${end1.roleName ? end1.roleName + ' ' : ''}${end1.lowerBound}..${end1.upperBound}`;
+      const label2 = `${end2.lowerBound}..${end2.upperBound}${end2.roleName ? ' ' + end2.roleName : ''}`;
+
+      if (assoc.type === 'uml:AssociationClass') {
+        const anchorId = `${assoc.id}-anchor`;
+        
+        initialNodes.push({
+          id: anchorId,
+          type: 'anchorNode',
+          position: { x: 0, y: 0 },
+          data: {}
+        });
+
+        initialEdges.push({
+          id: `${assoc.id}-half1`,
+          source: end1.targetClassId,
+          target: anchorId,
+          type: 'umlEdge',
+          data: {
+            sourceLabel: label1,
+            targetLabel: '',
+            sourceAggregation: getAggregationString(end1.endType),
+            targetAggregation: 'none',
+          }
+        });
+
+        initialEdges.push({
+          id: `${assoc.id}-half2`,
+          source: anchorId,
+          target: end2.targetClassId,
+          type: 'umlEdge',
+          data: {
+            sourceLabel: '',
+            targetLabel: label2,
+            sourceAggregation: 'none',
+            targetAggregation: getAggregationString(end2.endType),
+          }
+        });
+
+        initialEdges.push({
+          id: `${assoc.id}-dashed-link`,
+          source: assoc.id,
+          target: anchorId,
+          type: 'default',
+          animated: false,
+          style: { strokeDasharray: '5,5', stroke: '#aaa', strokeWidth: 1.5 }
+        });
+      } else {
+        initialEdges.push({
+          id: assoc.id,
+          source: end1.targetClassId,
+          target: end2.targetClassId,
+          type: 'umlEdge',
+          data: {
+            sourceLabel: label1,
+            targetLabel: label2,
+            sourceAggregation: getAggregationString(end1.endType),
+            targetAggregation: getAggregationString(end2.endType),
+          }
+        });
+      }
+    } else if (assoc.ends.length > 2) {
+      // N-ary association: map to a central diamond node and multiple connecting edges
+      initialNodes.push({
+        id: assoc.id,
+        type: 'nAryNode',
+        position: { x: 0, y: 0 },
+        data: { label: assoc.name }
+      });
+
+      assoc.ends.forEach((end, idx) => {
+        const regEnd = end as UMLRegularAssociationEnd;
+        const label = `${regEnd.lowerBound}..${regEnd.upperBound}${regEnd.roleName ? ' ' + regEnd.roleName : ''}`;
+        initialEdges.push({
+          id: `${assoc.id}-edge-${idx}`,
+          source: assoc.id,
+          target: regEnd.targetClassId,
+          type: 'umlEdge',
+          data: {
+            targetLabel: label,
+            targetAggregation: getAggregationString(regEnd.endType), 
+          }
+        });
+      });
+    }
+  });
+
+  return { initialNodes, initialEdges };
+};
+
+/**
+ * Calculates the center of a given layouted node to determine the optimal connection angle.
+ */
+const getNodeCenter = (node: Node) => {
+  const width = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 260;
+  const height = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 160;
+  return { x: node.position.x + width / 2, y: node.position.y + height / 2 };
+};
+
+/**
+ * Resolves layout routing globally by determining the best anchor points for edges based on angles and distances.
+ * Fallbacks are used if preferred positions are already taken by other edges.
+ */
+const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
+  const finalEdges = [...layoutedEdges];
+  const nodeConnections = new Map<string, { edge: Edge, type: 'source' | 'target', angle: number, dist: number }[]>();
+  layoutedNodes.forEach(n => nodeConnections.set(n.id, []));
+
+  // 1. Collect all edges, calculate the ideal angle and distance
+  finalEdges.forEach(edge => {
+    const sourceNode = layoutedNodes.find(n => n.id === edge.source);
+    const targetNode = layoutedNodes.find(n => n.id === edge.target);
+    
+    if (sourceNode && targetNode) {
+      if (sourceNode.id === targetNode.id) {
+        // Handle self-loops by assigning fixed angles to encourage a specific loop shape (e.g., right-to-top).
+        // These will be processed by the global assignment logic to avoid collisions.
+        nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: 0, dist: 0 }); // Prefers Right
+        nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: -90, dist: 0 }); // Prefers Top
+        edge.data = { ...edge.data, isSelfLoop: true }; // Mark for special rendering
+      } else {
+        const sCenter = getNodeCenter(sourceNode);
+        const tCenter = getNodeCenter(targetNode);
+        
+        // Angle in degrees (-180 to 180) between centers
+        const angleST = Math.atan2(tCenter.y - sCenter.y, tCenter.x - sCenter.x) * 180 / Math.PI;
+        const angleTS = Math.atan2(sCenter.y - tCenter.y, sCenter.x - tCenter.x) * 180 / Math.PI;
+        
+        // Calculate distance
+        const dist = Math.hypot(tCenter.x - sCenter.x, tCenter.y - sCenter.y);
+        
+        nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: angleST, dist });
+        nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: angleTS, dist });
+      }
+    }
+  });
+
+  // 2. Conflict-free assignment based on distance and dynamic angle
+  nodeConnections.forEach((connections) => {
+    // Process longest edges first. If equal length, sort by angle.
+    // This allows distant connections to get the most direct handle, while close connections tend to evade.
+    connections.sort((a, b) => b.dist - a.dist || a.angle - b.angle);
+
+    // Track usage for both sources and targets combined to prevent visual overlap
+    const positionUsage = new Map<Position, number>([
+      [Position.Top, 0],
+      [Position.Right, 0],
+      [Position.Bottom, 0],
+      [Position.Left, 0]
+    ]);
+      
+    connections.forEach(conn => {
+      const handleAngles: Record<string, number> = {
+        [Position.Right]: 0,
+        [Position.Bottom]: 90,
+        [Position.Left]: 180,
+        [Position.Top]: -90
+      };
+
+      const getAngleDiff = (a1: number, a2: number) => {
+        const diff = Math.abs(a1 - a2) % 360;
+        return diff > 180 ? 360 - diff : diff;
+      };
+
+      const positions = [Position.Right, Position.Bottom, Position.Left, Position.Top];
+      
+      // Dynamic fallback order: Handles closest to the ideal angle are preferred
+      positions.sort((p1, p2) => getAngleDiff(conn.angle, handleAngles[p1]) - getAngleDiff(conn.angle, handleAngles[p2]));
+      
+      // Find the position with the lowest usage, based on the calculated order
+      let bestPos = positions[0];
+      let minUsage = Infinity;
+      
+      for (const pos of positions) {
+        const usage = positionUsage.get(pos)!;
+        if (usage < minUsage) {
+          minUsage = usage;
+          bestPos = pos;
+          if (minUsage === 0) break; // Perfect, it's completely free
+        }
+      }
+      
+      // Mark position as used
+      positionUsage.set(bestPos, positionUsage.get(bestPos)! + 1);
+      
+      // Assign handle to edge
+      if (conn.type === 'source') conn.edge.sourceHandle = `${bestPos}-source`;
+      else conn.edge.targetHandle = `${bestPos}-target`;
+    });
+  });
+
+  return finalEdges;
+};
+
 interface UMLDiagramProps {
   umlIR: UMLIR | null;
 }
@@ -78,240 +326,14 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
       return;
     }
 
-    const initialNodes: Node[] = [];
-    const initialEdges: Edge[] = [];
-
-    // Extract specific element types from the Intermediate Representation
-    const classes = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Class' || el.type === 'uml:AssociationClass') as UMLClass[];
-    const associations = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Association' || el.type === 'uml:AssociationClass') as UMLAssociation[];
-
-    // Create visual nodes for every UML class
-    classes.forEach((cls) => {
-      initialNodes.push({
-        id: cls.id,
-        type: 'umlClass',
-        position: { x: 0, y: 0 },
-        data: { label: cls.name, attributes: cls.attributes }
-      });
-    });
-
-    // Process UML associations into visual edges (for binary) or diamond nodes + edges (for n-ary)
-    associations.forEach((assoc) => {
-      const isGeneralization = assoc.ends.some((end) => end.endType === 'generalization');
-
-      if (isGeneralization && assoc.ends.length === 2) {
-        const superclassEnd = assoc.ends.find((end) => end.endType === 'generalization');
-        const subclassEnd = assoc.ends.find((end) => end.endType !== 'generalization');
-
-        if (superclassEnd && subclassEnd) {
-          initialEdges.push({
-            id: assoc.id,
-            source: subclassEnd.targetClassId,
-            target: superclassEnd.targetClassId,
-            type: 'umlEdge',
-            data: {
-              sourceLabel: '',
-              targetLabel: '',
-              sourceAggregation: 'none',
-              targetAggregation: 'generalization',
-            }
-          });
-        }
-      } else if (assoc.ends.length === 2) {
-        // Binary association: map directly to a single React Flow edge
-        const end1 = assoc.ends[0] as UMLRegularAssociationEnd;
-        const end2 = assoc.ends[1] as UMLRegularAssociationEnd;
-        
-        const label1 = `${end1.roleName ? end1.roleName + ' ' : ''}${end1.lowerBound}..${end1.upperBound}`;
-        const label2 = `${end2.lowerBound}..${end2.upperBound}${end2.roleName ? ' ' + end2.roleName : ''}`;
-
-        const getAggregationString = (type: string) => type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
-
-        if (assoc.type === 'uml:AssociationClass') {
-          const anchorId = `${assoc.id}-anchor`;
-          
-          initialNodes.push({
-            id: anchorId,
-            type: 'anchorNode',
-            position: { x: 0, y: 0 },
-            data: {}
-          });
-
-          initialEdges.push({
-            id: `${assoc.id}-half1`,
-            source: end1.targetClassId,
-            target: anchorId,
-            type: 'umlEdge',
-            data: {
-              sourceLabel: label1,
-              targetLabel: '', // Label only at the class side
-              sourceAggregation: getAggregationString(end1.endType),
-              targetAggregation: 'none',
-            }
-          });
-
-          initialEdges.push({
-            id: `${assoc.id}-half2`,
-            source: anchorId,
-            target: end2.targetClassId,
-            type: 'umlEdge',
-            data: {
-              sourceLabel: '', // Label only at the class side
-              targetLabel: label2,
-              sourceAggregation: 'none',
-              targetAggregation: getAggregationString(end2.endType),
-            }
-          });
-
-          initialEdges.push({
-            id: `${assoc.id}-dashed-link`,
-            source: assoc.id,
-            target: anchorId,
-            type: 'default',
-            animated: false,
-            style: { strokeDasharray: '5,5', stroke: '#aaa', strokeWidth: 1.5 }
-          });
-        } else {
-          initialEdges.push({
-            id: assoc.id,
-            source: end1.targetClassId,
-            target: end2.targetClassId,
-            type: 'umlEdge',
-            data: {
-              sourceLabel: label1,
-              targetLabel: label2,
-              sourceAggregation: getAggregationString(end1.endType),
-              targetAggregation: getAggregationString(end2.endType),
-            }
-          });
-        }
-      } else if (assoc.ends.length > 2) {
-        // N-ary association: map to a central diamond node and multiple connecting edges
-        initialNodes.push({
-          id: assoc.id,
-          type: 'nAryNode',
-          position: { x: 0, y: 0 },
-          data: { label: assoc.name }
-        });
-
-        const getAggregationString = (type: string) => type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
-
-        assoc.ends.forEach((end, idx) => {
-          const regEnd = end as UMLRegularAssociationEnd;
-          const label = `${regEnd.lowerBound}..${regEnd.upperBound}${regEnd.roleName ? ' ' + regEnd.roleName : ''}`;
-          initialEdges.push({
-            id: `${assoc.id}-edge-${idx}`,
-            source: assoc.id,
-            target: regEnd.targetClassId,
-            type: 'umlEdge',
-            data: {
-              targetLabel: label,
-              targetAggregation: getAggregationString(regEnd.endType), 
-            }
-          });
-        });
-      }
-    });
-
-    // Apply auto-layout to position all elements hierarchically
+    // 1. Build graphical representation format
+    const { initialNodes, initialEdges } = buildUmlElements(umlIR);
+    
+    // 2. Apply auto-layout via dagre
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(initialNodes, initialEdges, 'TB');
 
-    // --- GLOBAL HANDLE ASSIGNMENT (DEFER STRATEGY) ---
-    // Calculate the ideal angles for all connections based on their final
-    // layout positions, then distribute the handles globally and conflict-free per node.
-    const finalEdges = [...layoutedEdges];
-    
-    const getNodeCenter = (node: Node) => {
-      const width = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 260;
-      const height = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 160;
-      return { x: node.position.x + width / 2, y: node.position.y + height / 2 };
-    };
-
-    const nodeConnections = new Map<string, { edge: Edge, type: 'source' | 'target', angle: number, dist: number }[]>();
-    layoutedNodes.forEach(n => nodeConnections.set(n.id, []));
-
-    // 1. Collect all edges, calculate the ideal angle and distance
-    finalEdges.forEach(edge => {
-      const sourceNode = layoutedNodes.find(n => n.id === edge.source);
-      const targetNode = layoutedNodes.find(n => n.id === edge.target);
-      
-      if (sourceNode && targetNode) {
-        if (sourceNode.id === targetNode.id) {
-          // Handle self-loops by assigning fixed angles to encourage a specific loop shape (e.g., right-to-top).
-          // These will be processed by the global assignment logic to avoid collisions.
-          nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: 0, dist: 0 }); // Prefers Right
-          nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: -90, dist: 0 }); // Prefers Top
-          edge.data = { ...edge.data, isSelfLoop: true }; // Mark for special rendering
-        } else {
-          const sCenter = getNodeCenter(sourceNode);
-          const tCenter = getNodeCenter(targetNode);
-          
-          // Angle in degrees (-180 to 180) between centers
-          const angleST = Math.atan2(tCenter.y - sCenter.y, tCenter.x - sCenter.x) * 180 / Math.PI;
-          const angleTS = Math.atan2(sCenter.y - tCenter.y, sCenter.x - tCenter.x) * 180 / Math.PI;
-          
-          // Calculate distance
-          const dist = Math.hypot(tCenter.x - sCenter.x, tCenter.y - sCenter.y);
-          
-          nodeConnections.get(sourceNode.id)?.push({ edge, type: 'source', angle: angleST, dist });
-          nodeConnections.get(targetNode.id)?.push({ edge, type: 'target', angle: angleTS, dist });
-        }
-      }
-    });
-
-    // 2. Conflict-free assignment based on distance and dynamic angle
-    nodeConnections.forEach((connections) => {
-      // Process longest edges first. If equal length, sort by angle.
-      // This allows distant connections to get the most direct handle, while close connections tend to evade.
-      connections.sort((a, b) => b.dist - a.dist || a.angle - b.angle);
-
-      // Track usage for both sources and targets combined to prevent visual overlap
-      const positionUsage = new Map<Position, number>([
-        [Position.Top, 0],
-        [Position.Right, 0],
-        [Position.Bottom, 0],
-        [Position.Left, 0]
-      ]);
-        
-      connections.forEach(conn => {
-        const handleAngles: Record<string, number> = {
-          [Position.Right]: 0,
-          [Position.Bottom]: 90,
-          [Position.Left]: 180,
-          [Position.Top]: -90
-        };
-
-        const getAngleDiff = (a1: number, a2: number) => {
-          const diff = Math.abs(a1 - a2) % 360;
-          return diff > 180 ? 360 - diff : diff;
-        };
-
-        const positions = [Position.Right, Position.Bottom, Position.Left, Position.Top];
-        
-        // Dynamic fallback order: Handles closest to the ideal angle are preferred
-        positions.sort((p1, p2) => getAngleDiff(conn.angle, handleAngles[p1]) - getAngleDiff(conn.angle, handleAngles[p2]));
-        
-        // Find the position with the lowest usage, based on the calculated order
-        let bestPos = positions[0];
-        let minUsage = Infinity;
-        
-        for (const pos of positions) {
-          const usage = positionUsage.get(pos)!;
-          if (usage < minUsage) {
-            minUsage = usage;
-            bestPos = pos;
-            if (minUsage === 0) break; // Perfect, it's completely free
-          }
-        }
-        
-        // Mark position as used
-        positionUsage.set(bestPos, positionUsage.get(bestPos)! + 1);
-        
-        // Assign handle to edge
-        if (conn.type === 'source') conn.edge.sourceHandle = `${bestPos}-source`;
-        else conn.edge.targetHandle = `${bestPos}-target`;
-      });
-    });
+    // 3. Prevent overlaps by smartly routing edges
+    const finalEdges = assignOptimalHandles(layoutedNodes, layoutedEdges);
 
     setNodes(layoutedNodes);
     setEdges(finalEdges);

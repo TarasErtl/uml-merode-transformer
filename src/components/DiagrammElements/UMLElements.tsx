@@ -2,6 +2,24 @@ import React from 'react';
 import { Handle, Position, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getBezierPath } from '@xyflow/react';
 
 /**
+ * Shared component to render invisible handles for all 4 sides.
+ * Prevents redundant code across different node types.
+ */
+const InvisibleHandles = () => {
+  const positions = [Position.Top, Position.Bottom, Position.Left, Position.Right];
+  return (
+    <>
+      {positions.map((pos) => (
+        <React.Fragment key={pos}>
+          <Handle type="target" position={pos} id={`${pos}-target`} style={{ opacity: 0 }} />
+          <Handle type="source" position={pos} id={`${pos}-source`} style={{ opacity: 0 }} />
+        </React.Fragment>
+      ))}
+    </>
+  );
+};
+
+/**
  * Custom Node component for representing UML Classes.
  * Displays the class name in a header and lists attributes with visibility markers.
  */
@@ -41,17 +59,8 @@ export const ClassNode = ({ data }: any) => {
         )}
       </div>
       
-      <Handle type="target" position={Position.Top} id="top-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Top} id="top-source" style={{ opacity: 0 }} />
-      
-      <Handle type="target" position={Position.Bottom} id="bottom-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" style={{ opacity: 0 }} />
-
-      <Handle type="target" position={Position.Left} id="left-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Left} id="left-source" style={{ opacity: 0 }} />
-      
-      <Handle type="target" position={Position.Right} id="right-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Right} id="right-source" style={{ opacity: 0 }} />
+      <InvisibleHandles />
+      <InvisibleHandles />
     </div>
   );
 };
@@ -96,16 +105,22 @@ export const NAryNode = ({ data }: any) => {
 export const AnchorNode = () => {
   return (
     <div style={{ width: '1px', height: '1px', visibility: 'hidden' }}>
-      <Handle type="target" position={Position.Top} id="top-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Top} id="top-source" style={{ opacity: 0 }} />
-      <Handle type="target" position={Position.Bottom} id="bottom-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Bottom} id="bottom-source" style={{ opacity: 0 }} />
-      <Handle type="target" position={Position.Left} id="left-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Left} id="left-source" style={{ opacity: 0 }} />
-      <Handle type="target" position={Position.Right} id="right-target" style={{ opacity: 0 }} />
-      <Handle type="source" position={Position.Right} id="right-source" style={{ opacity: 0 }} />
+      <InvisibleHandles />
     </div>
   );
+};
+
+/**
+ * Calculates the bezier control points for self-loop edges.
+ */
+const getSelfLoopControlPoint = (x: number, y: number, pos: Position) => {
+  switch (pos) {
+    case Position.Top: return { x, y: y - 100 };
+    case Position.Bottom: return { x, y: y + 100 };
+    case Position.Left: return { x: x - 100, y };
+    case Position.Right: return { x: x + 100, y };
+    default: return { x, y };
+  }
 };
 
 /**
@@ -129,15 +144,8 @@ export const UMLEdge = ({
   let edgePath;
 
   if (isSelfLoop) {
-    const getCP = (x: number, y: number, pos: Position) => {
-      if (pos === Position.Top) return { x, y: y - 100 };
-      if (pos === Position.Bottom) return { x, y: y + 100 };
-      if (pos === Position.Left) return { x: x - 100, y };
-      if (pos === Position.Right) return { x: x + 100, y };
-      return { x, y };
-    };
-    const cp1 = getCP(sourceX, sourceY, sourcePosition);
-    const cp2 = getCP(targetX, targetY, targetPosition);
+    const cp1 = getSelfLoopControlPoint(sourceX, sourceY, sourcePosition);
+    const cp2 = getSelfLoopControlPoint(targetX, targetY, targetPosition);
     edgePath = `M ${sourceX} ${sourceY} C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${targetX} ${targetY}`;
   } else {
     [edgePath] = getSmoothStepPath({
