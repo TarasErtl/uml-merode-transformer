@@ -18,13 +18,15 @@ import {
   type Decision, 
 } from './types/decisions';
 import { convertProposalToDecision } from "./utils/decisionConverter";
+import './App.css'; // Add CSS import
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
   const [umlIR, setUmlIR] = useState<UMLIR | null>(null);
   const [error, setError] = useState<string>("");
   const [merodeIR, setMerodeIR] = useState<MerodeIR | null>(null);
-  const [showMerodeDiagram, setShowMerodeDiagram] = useState<boolean>(false); // New state to toggle diagram view
+  const [viewMode, setViewMode] = useState<'uml' | 'merode' | 'split'>('split');
+  const [showProposals, setShowProposals] = useState<boolean>(true);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [decisions, setDecisions] = useState<Map<string, Decision>>(new Map()); // New state for decisions
 
@@ -161,46 +163,102 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen font-sans bg-[#121212] text-gray-100">
+    <div className="app-container">
       {!modelName && (
-        <div className="flex-grow flex items-center justify-center">
-          <div className="w-full">
+        <div className="app-loader-container">
+          <div className="app-filepicker-wrapper">
             <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
-            {error && <div className="mt-4 max-w-lg mx-auto text-center text-red-400 bg-red-900/50 p-3 rounded">{error}</div>}
+            {error && <div className="app-error-message">{error}</div>}
           </div>
         </div>
       )}
       {modelName && (
-        <div className="flex flex-grow overflow-hidden">
-        {/* Toggle button for diagram view */}
-        {umlIR && (
-          <div className="absolute top-4 right-4 z-10">
-            <button 
-              onClick={() => setShowMerodeDiagram(!showMerodeDiagram)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md font-semibold text-sm hover:bg-blue-700 transition-colors"
-            >
-              {showMerodeDiagram ? 'Show UML Diagram' : 'Show MERODE Diagram'}
-            </button>
-          </div>
-        )}
-        <main className="flex-grow p-4 relative">
-          {umlIR && showMerodeDiagram && merodeIR ? (
-            <MERODEDiagram merodeIR={merodeIR} />
-          ) : umlIR && !showMerodeDiagram ? (
-            <UMLDiagram umlIR={umlIR} />
-          ) : ( // No UML IR loaded
-            <div className="flex items-center justify-center h-full text-gray-500"> 
-              <p>Kein Modell geladen. Bitte wählen Sie eine XMI-Datei aus.</p> 
+        <div className="app-main-layout">
+        {/* Main content area */}
+        <main className="app-main-content">
+          {umlIR && viewMode !== 'merode' && (
+            <div className="app-diagram-container">
+              <div className="app-diagram-wrapper">
+                <UMLDiagram key={`uml-diagram-${viewMode}`} umlIR={umlIR} />
+              </div>
+            </div>
+          )}
+          {umlIR && viewMode !== 'uml' && merodeIR && (
+            <div className="app-diagram-container">
+              <div className="app-diagram-wrapper">
+                <MERODEDiagram key={`merode-diagram-${viewMode}`} merodeIR={merodeIR} />
+              </div>
+            </div>
+          )}
+          {(!umlIR) && (
+            <div className="app-no-model">
+              <p>Kein Modell geladen. Bitte wählen Sie eine XMI-Datei aus.</p>
             </div>
           )}
         </main>
-        <aside className="w-1/5 min-w-[300px] flex-shrink-0 h-full p-4"> {/* aside nimmt volle Höhe und hat Padding */} 
-          <ProposalPanel 
-            proposals={proposals}
-            onProposalChange={handleProposalChange}
-            onSwapMasterDependent={handleSwapMasterDependent}
-            onAcceptProposal={handleAcceptProposal}
-          />
+
+        {/* Sidebar */}
+        <aside className={`app-sidebar ${showProposals ? 'open' : 'closed'}`}> 
+          <div className="app-sidebar-inner">
+            {/* Control Panel */}
+            <div className={`app-control-panel ${showProposals ? 'open' : 'closed'}`}>
+                {umlIR && (
+                  <>
+                    <button 
+                      onClick={() => setViewMode('uml')} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'uml' ? 'active' : 'inactive'}`}
+                      title="UML Diagramm anzeigen"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">U</text>
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => setViewMode('split')} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'split' ? 'active' : 'inactive'}`}
+                      title="Split View anzeigen"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="12" y1="3" x2="12" y2="21"></line>
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => setViewMode('merode')} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'merode' ? 'active' : 'inactive'}`}
+                      title="MERODE Diagramm anzeigen"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">M</text>
+                      </svg>
+                    </button>
+                  </>
+                )}
+              <button 
+                onClick={() => setShowProposals(!showProposals)} 
+                className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
+                title={showProposals ? "Proposals ausblenden" : "Proposals einblenden"}
+              >
+                {showProposals ? (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                ) : (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                )}
+              </button>
+            </div>
+
+            {/* Proposals Panel - only render when shown */}
+            <div className={`app-proposals-container ${showProposals ? 'open' : 'closed'}`}>
+              <ProposalPanel 
+                proposals={proposals}
+                onProposalChange={handleProposalChange}
+                onSwapMasterDependent={handleSwapMasterDependent}
+                onAcceptProposal={handleAcceptProposal}
+              />
+            </div>
+          </div>
         </aside>
       </div>
       )}
