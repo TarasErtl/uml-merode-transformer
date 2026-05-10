@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+.file-picker-wrapper {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+  position: relative;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #f4f4f5;
+}
+
+.file-picker-header {
+  margin-bottom: 3rem;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.file-picker-title {
+  font-size: 6rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 40px rgba(99, 102, 241, 0.4);
+}
+
+.file-picker-subtitle {
+  color: #a1a1aa;
+}
+
+.file-picker-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 450px;
+  position: relative;
+}
+
+.file-picker-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.file-picker-icon-container {
+  background-color: #1e1e1e;
+  padding: 2rem;
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+  box-shadow: 4px 4px 10px rgba(0,0,0,0.5), -2px -2px 6px rgba(255,255,255,0.05), 0 0 40px 5px rgba(129, 140, 248, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-picker-icon-container:hover {
+  transform: translateY(-2px);
+}
+
+.file-picker-icon-container:active {
+  box-shadow: inset 4px 4px 10px rgba(0,0,0,0.6), inset -2px -2px 6px rgba(255,255,255,0.02);
+  transform: scale(0.98);
+}
+
+.file-picker-icon {
+  color: #818cf8;
+  font-size: 3.75rem;
+  font-family: 'Material Symbols Outlined';
+  font-variation-settings: 'FILL' 1;
+}
+
+.file-picker-instructions {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.file-picker-limits {
+  color: #a1a1aa;
+  margin-bottom: 2.5rem;
+  max-width: 24rem;
+}

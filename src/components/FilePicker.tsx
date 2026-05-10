@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import './FilePicker.css';
 
 interface FilePickerProps {
   onFileLoaded: (content: string) => void;
@@ -32,17 +33,53 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFileLoaded, onFileError }) =>
     reader.readAsText(file);
   };
 
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    if (!file.name.endsWith('.xmi')) {
+      onFileError('Bitte laden Sie eine .xmi-Datei hoch.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result;
+      if (typeof text === 'string') {
+        onFileLoaded(text);
+      }
+    };
+    reader.onerror = () => {
+      onFileError('Fehler beim Lesen der Datei.');
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
   return (
-    <div>
-      <label htmlFor="file-upload" className="cursor-pointer inline-flex items-center px-4 py-2 bg-violet-600 text-white rounded-md font-semibold text-sm hover:bg-violet-700 transition-colors">
-        {/* SVG Icon für Upload */}
-        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        XMI-Datei auswählen
-      </label>
-      <input 
-        id="file-upload" 
-        type="file" accept=".xmi" onChange={handleFileChange} ref={fileInputRef} className="hidden" 
-      />
+    <div className="file-picker-wrapper">
+      <div className="file-picker-header">
+        <h2 className="file-picker-title">UML2Merode Converter</h2>
+        <p className="file-picker-subtitle">Upload your UML Diagram to begin the conversion to Merode.</p>
+      </div>
+
+      <div className="file-picker-dropzone" onDrop={handleDrop} onDragOver={handleDragOver}>
+        <div className="file-picker-content">
+          {/* Use label as container to trigger file input on click */}
+          <label htmlFor="file-upload" className="file-picker-icon-container">
+            <span className="file-picker-icon">cloud_upload</span>
+          </label>
+          <h3 className="file-picker-instructions">Drag and drop files or click the cloud</h3>
+          <p className="file-picker-limits">Supports xmi files</p>
+          <input id="file-upload" type="file" accept=".xmi" onChange={handleFileChange} ref={fileInputRef} style={{ display: 'none' }} />
+        </div>
+      </div>
     </div>
   );
 };

@@ -161,23 +161,17 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen font-sans bg-gray-900 text-gray-100">
+    <div className="flex flex-col h-screen font-sans bg-[#121212] text-gray-100">
       {!modelName && (
-        <header className="flex-shrink-0 p-4 border-b border-gray-700 shadow-md">
-          <h1 className="text-2xl font-bold text-white">UML-zu-MERODE Transformator</h1>
-          <p className="text-sm text-gray-400">Laden Sie eine XMI-Datei hoch, um die Transformation zu starten und Vorschläge zu bearbeiten.</p>
-          <div className="mt-4">
+        <div className="flex-grow flex items-center justify-center">
+          <div className="w-full">
             <FilePicker onFileLoaded={handleFileLoaded} onFileError={handleFileError} />
-            {modelName && ( // This inner check for modelName will now always be false if the outer condition is true
-              <div className="mt-2 text-sm">
-                <strong>Modell:</strong> <span className="font-mono p-1 bg-gray-700 rounded">{modelName}</span>
-              </div>
-            )}
-            {error && <div className="mt-2 text-red-400 bg-red-900/50 p-2 rounded">{error}</div>}
+            {error && <div className="mt-4 max-w-lg mx-auto text-center text-red-400 bg-red-900/50 p-3 rounded">{error}</div>}
           </div>
-        </header>
+        </div>
       )}
-      <div className="flex flex-grow overflow-hidden">
+      {modelName && (
+        <div className="flex flex-grow overflow-hidden">
         {/* Toggle button for diagram view */}
         {umlIR && (
           <div className="absolute top-4 right-4 z-10">
@@ -210,6 +204,7 @@ function App() {
           />
         </aside>
       </div>
+      )}
     </div>
   );
 }
