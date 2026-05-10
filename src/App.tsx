@@ -194,13 +194,12 @@ function App() {
             </div>
           )}
         </main>
-        <aside className="w-1/4 flex-shrink-0 h-full p-4"> {/* aside nimmt volle Höhe und hat Padding */} 
+        <aside className="w-1/5 min-w-[300px] flex-shrink-0 h-full p-4"> {/* aside nimmt volle Höhe und hat Padding */} 
           <ProposalPanel 
             proposals={proposals}
             onProposalChange={handleProposalChange}
             onSwapMasterDependent={handleSwapMasterDependent}
             onAcceptProposal={handleAcceptProposal}
-            className="h-full flex flex-col" /* ProposalPanel füllt die übergeordnete Höhe aus und wird zu einem Flex-Spalten-Container */
           />
         </aside>
       </div>

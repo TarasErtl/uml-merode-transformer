@@ -14,20 +14,20 @@ const UnaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptProp
   ];
 
   return (
-    <div className="border border-[#555] rounded-lg p-4 bg-[#2d2d2d]">
-      <h3 className="mb-2.5 text-[#888]">Unäre Assoziation auflösen</h3>
-      <p className="mb-[15px]">{proposal.message}</p>
+    <div className="proposal-card">
+      <h3 className="proposal-card-title">Unäre Assoziation auflösen</h3>
+      <p className="proposal-card-section">{proposal.message}</p>
       
-      <div className="flex flex-col gap-2.5 mb-[15px]">
+      <div className="proposal-card-fields">
         {fieldsToRender.map(({ key, label }) => (
           <div key={key}>
-            <label htmlFor={`${proposal.id}-${key}`} className="block mb-1.5 text-xs text-[#A0A0A0]">{label}</label>
+            <label htmlFor={`${proposal.id}-${key}`} className="proposal-card-label">{label}</label>
             <input
               id={`${proposal.id}-${key}`}
               type="text"
               value={proposal[key as keyof UnaryAssociationProposal] as string}
               onChange={(e) => onProposalChange(proposal.id, key, e.target.value)}
-              className="w-full p-2 rounded border border-[#666] bg-[#3a3a3a] text-[#eee]"
+              className="proposal-card-input"
             />
           </div>
         ))}
@@ -36,7 +36,7 @@ const UnaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptProp
       <button
         type="button"
         onClick={() => onAcceptProposal(proposal)}
-        className="w-full py-[10px] px-[15px] bg-[#4CAF50] text-white border-none rounded-md cursor-pointer text-base"
+        className="proposal-card-button"
       >
         Vorschlag annehmen
       </button>

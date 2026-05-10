@@ -128,10 +128,19 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
   //if no decision present, create and return a proposal
   if(!decisions.has(umlAssoc.id)){
     let retProposal: BinaryAssociationProposal;
-    let message, masterclassName, dependentclassName: string;
+    let message: string;
 
-    masterclassName = merodeIR.get(masterClassId!)?.name!;
-    dependentclassName = merodeIR.get(dependentClassId!)?.name!;
+    const class1Id = end1.targetClassId;
+    const class2Id = end2.targetClassId;
+    const class1Name = merodeIR.get(class1Id)?.name || '';
+    const class2Name = merodeIR.get(class2Id)?.name || '';
+
+    // Fallback auf class1 und class2, falls master/dependent initial nicht zugewiesen wurden
+    let masterclassName = masterClassId ? merodeIR.get(masterClassId)?.name || '' : class1Name;
+    let dependentclassName = dependentClassId ? merodeIR.get(dependentClassId)?.name || '' : class2Name;
+
+    const propMasterClassId = masterClassId || class1Id;
+    const propDependentClassId = dependentClassId || class2Id;
 
     if(isExistenceDependent){
       message = `The association ${umlAssoc.id}, going between class: ${merodeIR.get(masterClassId!)?.name} and class: ${merodeIR.get(dependentClassId!)?.name} is proposed to be mapped as an existence dependent association. `
@@ -143,10 +152,10 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
     return {
       id: umlAssoc.id,
       proposedExistenceDependency: isExistenceDependent,
-      proposedMasterClassId: masterClassId!,
-      proposedDependentClassId: dependentClassId!,
-      proposedMasterClassName: masterclassName!,
-      proposedDependentClassName: dependentclassName!,
+      proposedMasterClassId: propMasterClassId,
+      proposedDependentClassId: propDependentClassId,
+      proposedMasterClassName: masterclassName,
+      proposedDependentClassName: dependentclassName,
       proposedClassName: `${umlAssoc.id}_Class`,
       proposedRole1Name: end1.roleName,
       proposedRole2Name: end2.roleName,

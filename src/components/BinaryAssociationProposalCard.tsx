@@ -14,12 +14,12 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
   };
 
   return (
-    <div className="border border-[#555] rounded-lg p-4 bg-[#2d2d2d]">
-      <h3 className="mb-2.5 text-[#888]">Binäre Assoziation auflösen</h3>
-      <p className="mb-[15px]">{proposal.message}</p>
+    <div className="proposal-card">
+      <h3 className="proposal-card-title">Binäre Assoziation auflösen</h3>
+      <p className="proposal-card-section">{proposal.message}</p>
 
-      <div className="mb-[15px]">
-        <label className="flex items-center gap-2 cursor-pointer">
+      <div className="proposal-card-section">
+        <label className="proposal-card-checkbox-label">
           <input
             type="checkbox"
             checked={proposal.proposedExistenceDependency}
@@ -45,7 +45,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
       <button
         type="button"
         onClick={() => onAcceptProposal(proposal)}
-        className="w-full py-[10px] px-[15px] bg-[#4CAF50] text-white border-none rounded-md cursor-pointer text-base"
+        className="proposal-card-button"
       >
         Vorschlag annehmen
       </button>
@@ -54,14 +54,18 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
 };
 
 const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal: BinaryAssociationExistenceDependentProposal, onSwapMasterDependent: (id: string) => void }) => (
-  <div className="mb-[15px]">
-    <p className="font-bold text-sm mb-2">Rollenverteilung:</p>
-    <div className="flex items-center justify-between gap-2 p-2 border border-[#666] rounded bg-[#3a3a3a]">
-      <span className="font-bold text-[#A0A0A0]">Master:</span>
-      <span className="flex-grow">{proposal.proposedMasterClassName}</span>
-      <button type="button" onClick={() => onSwapMasterDependent(proposal.id)} className="bg-[#555] text-white border-none rounded-full w-[30px] h-[30px] flex items-center justify-center cursor-pointer">⇋</button>
-      <span className="font-bold text-[#A0A0A0]">Dependent:</span>
-      <span className="flex-grow text-right">{proposal.proposedDependentClassName}</span>
+  <div className="proposal-card-section">
+    <p className="proposal-card-section-title">Rollenverteilung:</p>
+    <div className="proposal-card-role-distribution">
+      <div className="proposal-card-role-side">
+        <span className="proposal-card-role-label">Master:</span>
+        <span className="proposal-card-role-value" title={proposal.proposedMasterClassName}>{proposal.proposedMasterClassName}</span>
+      </div>
+      <button type="button" onClick={() => onSwapMasterDependent(proposal.id)} className="proposal-card-swap-button">⇋</button>
+      <div className="proposal-card-role-side right">
+        <span className="proposal-card-role-label">Dependent:</span>
+        <span className="proposal-card-role-value" title={proposal.proposedDependentClassName}>{proposal.proposedDependentClassName}</span>
+      </div>
     </div>
   </div>
 );
@@ -73,18 +77,18 @@ const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: B
     { key: 'proposedRole2Name', label: `Rolle zu '${proposal.class2Name}':` },
   ];
   return (
-    <div className="mb-[15px]">
-      <p className="font-bold text-sm mb-2.5">Als Link-Klasse modellieren:</p>
-      <div className="flex flex-col gap-2.5">
+    <div className="proposal-card-section">
+      <p className="proposal-card-section-title-alt">Als Link-Klasse modellieren:</p>
+      <div className="proposal-card-fields">
         {fields.map(({ key, label }) => (
           <div key={key}>
-            <label htmlFor={`${proposal.id}-${key}`} className="block mb-1.5 text-xs text-[#A0A0A0]">{label}</label>
+            <label htmlFor={`${proposal.id}-${key}`} className="proposal-card-label">{label}</label>
             <input
               id={`${proposal.id}-${key}`}
               type="text"
               value={proposal[key as keyof BinaryAssociationNoExistenceDependencyProposal] as string}
               onChange={(e) => onProposalChange(proposal.id, key, e.target.value)}
-              className="w-full p-2 rounded border border-[#666] bg-[#3a3a3a] text-[#eee]"
+              className="proposal-card-input"
             />
           </div>
         ))}
