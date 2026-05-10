@@ -1,4 +1,4 @@
-import { type BinaryAssociationProposal, type BinaryAssociationExistenceDependentProposal, type BinaryAssociationNoExistenceDependencyProposal } from '../types/proposals';
+import { type BinaryAssociationProposal} from '../types/proposals';
 
 interface BinaryAssociationProposalCardProps {
   proposal: BinaryAssociationProposal;
@@ -32,12 +32,12 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
 
       {proposal.proposedExistenceDependency ? (
         <ExistenceDependentView
-          proposal={proposal as BinaryAssociationExistenceDependentProposal} 
+          proposal={proposal} 
           onSwapMasterDependent={onSwapMasterDependent} 
         />
       ) : (
         <NoExistenceDependencyView
-          proposal={proposal as BinaryAssociationNoExistenceDependencyProposal} 
+          proposal={proposal} 
           onProposalChange={onProposalChange} 
         />
       )}
@@ -53,7 +53,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
   );
 };
 
-const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal: BinaryAssociationExistenceDependentProposal, onSwapMasterDependent: (id: string) => void }) => (
+const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal: BinaryAssociationProposal, onSwapMasterDependent: (id: string) => void }) => (
   <div className="proposal-card-section">
     <p className="proposal-card-section-title">Rollenverteilung:</p>
     <div className="proposal-card-role-distribution">
@@ -70,7 +70,7 @@ const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal:
   </div>
 );
 
-const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: BinaryAssociationNoExistenceDependencyProposal, onProposalChange: (id: string, key: string, value: string) => void }) => {
+const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: BinaryAssociationProposal, onProposalChange: (id: string, key: string, value: string) => void }) => {
   const fields = [
     { key: 'proposedClassName', label: 'Name der Link-Klasse:' },
     { key: 'proposedRole1Name', label: `Rolle zu '${proposal.class1Name}':` },
@@ -86,7 +86,7 @@ const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: B
             <input
               id={`${proposal.id}-${key}`}
               type="text"
-              value={proposal[key as keyof BinaryAssociationNoExistenceDependencyProposal] as string}
+              value={proposal[key as keyof BinaryAssociationProposal] as string}
               onChange={(e) => onProposalChange(proposal.id, key, e.target.value)}
               className="proposal-card-input"
             />

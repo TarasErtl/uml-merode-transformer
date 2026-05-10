@@ -12,7 +12,7 @@ import { type UMLIR } from './types/metamodels/uml';
 import { type MerodeIR } from "./types/metamodels/merode";
 import { 
   type Proposal,
-  type BinaryAssociationExistenceDependentProposal, 
+  type BinaryAssociationProposal, 
 } from './types/proposals';
 import { 
   type Decision, 
@@ -133,7 +133,7 @@ function App() {
   const handleSwapMasterDependent = (proposalId: string) => {
     setProposals(prev => prev.map(p => {
       if (p.id === proposalId && 'proposedMasterClassId' in p) {
-        const prop = p as BinaryAssociationExistenceDependentProposal;
+        const prop = p as BinaryAssociationProposal;
         return {
           ...prop,
           proposedMasterClassId: prop.proposedDependentClassId,
