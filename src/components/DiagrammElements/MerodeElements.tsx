@@ -92,9 +92,14 @@ export const MerodeEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosit
     [edgePath] = getSmoothStepPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition });
   }
 
-  const mStart = data?.isOptional ? 'url(#merode-circle-hollow)' : 'url(#merode-circle-filled)';
-  const mEnd = data?.isMultiple ? (markerEnd || 'url(#merode-arrow)') : undefined;
+  let mStart = data?.isOptional ? 'url(#merode-circle-hollow)' : 'url(#merode-circle-filled)';
+  let mEnd = data?.isMultiple ? (markerEnd || 'url(#merode-arrow)') : undefined;
   const labelOffset = 60; // Increased offset to prevent labels from overlapping horizontal markers
+
+  if (data?.isGeneralization) {
+    mStart = data.isAbstract ? 'url(#generalization-abstract)' : 'url(#generalization-concrete)';
+    mEnd = undefined; // No marker on the subclass side
+  }
 
   let targetLabelX = targetX;
   let targetLabelY = targetY;
@@ -108,7 +113,7 @@ export const MerodeEdge = ({ id, sourceX, sourceY, targetX, targetY, sourcePosit
   return (
     <>
       <BaseEdge id={id} path={edgePath} markerStart={mStart} markerEnd={mEnd} style={{ ...style, stroke: '#aaa', strokeWidth: 2 }} />
-      {data?.targetLabel && (
+      {data?.targetLabel && !data?.isGeneralization && (
         <EdgeLabelRenderer>
           <div style={{ position: 'absolute', transform: `translate(-50%, -50%) translate(${targetLabelX}px,${targetLabelY}px)`, background: '#333', color: '#eee', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 500, pointerEvents: 'none', zIndex: 10 }}>
             {data.targetLabel}
@@ -135,6 +140,14 @@ export const MerodeDiagramMarkers = () => (
 
       <marker id="merode-circle-filled" viewBox="0 0 20 20" refX="10" refY="10" markerWidth="20" markerHeight="20" orient="auto" markerUnits="userSpaceOnUse">
         <circle cx="10" cy="10" r="8" fill="#aaa" stroke="#aaa" strokeWidth="2" />
+      </marker>
+
+      <marker id="generalization-abstract" viewBox="0 0 30 30" refX="30" refY="15" markerWidth="30" markerHeight="30" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <polygon points="0,0 30,15 0,30" fill="#1e1e1e" stroke="#aaa" strokeWidth="1.5" />
+      </marker>
+      
+      <marker id="generalization-concrete" viewBox="0 0 30 30" refX="30" refY="15" markerWidth="30" markerHeight="30" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+        <polygon points="0,0 30,15 0,30" fill="#aaa" stroke="#aaa" strokeWidth="1.5" />
       </marker>
     </defs>
   </svg>

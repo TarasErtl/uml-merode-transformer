@@ -14,6 +14,7 @@ export interface XmiJsonClass extends XmiJsonBaseElement {
   'xmi:type': 'uml:Class';
   ownedAttribute?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
   generalization?: XmiJsonGeneralization | XmiJsonGeneralization[];
+  isAbstract?: string | boolean;
 }
 
 export interface XmiJsonAssociation extends XmiJsonBaseElement {

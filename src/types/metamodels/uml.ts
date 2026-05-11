@@ -25,6 +25,7 @@ export interface UMLClass extends UMLBaseElement {
   readonly type: 'uml:Class';
   attributes: readonly UMLAttribute[];
   associationIds: readonly string[];
+  readonly isAbstract?: boolean;
 }
 
 /**

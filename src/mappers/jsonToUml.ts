@@ -214,7 +214,8 @@ const processClasses = (
         type: "uml:Class",
         name: el.name ?? "",
         attributes: dataAttributes,
-        associationIds: Array.from(classAssocMap[el["xmi:id"]] || []).filter(Boolean)
+        associationIds: Array.from(classAssocMap[el["xmi:id"]] || []).filter(Boolean),
+        isAbstract: umlClass.isAbstract === "true" || umlClass.isAbstract === true
       });
     }
   });

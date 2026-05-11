@@ -43,8 +43,15 @@ export const ClassNode = ({ data }: any) => {
         fontSize: '20px',
         fontFamily: 'Arial',
         borderTopLeftRadius: '5px',
-        borderTopRightRadius: '5px'
+        borderTopRightRadius: '5px',
+        fontStyle: data.isAbstract ? 'italic' : 'normal'
       }}>
+        {/* Add <<abstract>> stereotype indicator above the class title */}
+        {data.isAbstract && (
+          <div style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'normal', marginBottom: '4px' }}>
+            &lt;&lt;abstract&gt;&gt;
+          </div>
+        )}
         {data.label}
       </div>
       <div style={{ padding: '12px' }}>

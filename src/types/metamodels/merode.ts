@@ -44,7 +44,8 @@ export interface MerodeAttribute extends MerodeBaseElement {
 
 /**
  * Represents a Merode Association, containing master and dependent class
- * the role name, and the multiplicity of the dependent class
+ * the role name, and the multiplicity of the dependent class.
+ * Optionally includes flags to mark if the association represents a generalization.
  */
 export interface MerodeAssociation extends MerodeBaseElement {
   readonly type: 'merode:Association';
@@ -52,6 +53,8 @@ export interface MerodeAssociation extends MerodeBaseElement {
   multiplicity: MerodeMultiplicity;
   dependentClassId: string;
   roleName?: string;
+  readonly isGeneralization?: boolean;
+  readonly isAbstract?: boolean;
 }
 
 /**
@@ -64,4 +67,3 @@ export const MerodeMultiplicity = {
   OneToOne: "1..1"
 } as const;
 export type MerodeMultiplicity = (typeof MerodeMultiplicity)[keyof typeof MerodeMultiplicity];
-

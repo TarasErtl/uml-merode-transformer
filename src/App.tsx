@@ -32,6 +32,7 @@ function App() {
   const [decisions, setDecisions] = useState<Map<string, Decision>>(new Map()); // New state for decisions
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null); // State for cross-diagram hover
   const [hoverSource, setHoverSource] = useState<'proposal' | 'diagram' | null>(null);
+  const [layoutResetCount, setLayoutResetCount] = useState<number>(0);
 
   //recreates the function if umlIR or decisions change, which triggers the execution in useEffect
   const reMapModels = useCallback(() => {
@@ -197,7 +198,7 @@ function App() {
               <div className="app-diagram-wrapper">
                 <ReactFlowProvider>
                   <UMLDiagram 
-                    key={`uml-diagram-${modelName}`} 
+                    key={`uml-diagram-${modelName}-${layoutResetCount}`} 
                     umlIR={umlIR} 
                     hoveredElementId={hoveredElementId}
                     hoverSource={hoverSource}
@@ -212,7 +213,7 @@ function App() {
               <div className="app-diagram-wrapper">
                 <ReactFlowProvider>
                   <MERODEDiagram 
-                    key={`merode-diagram-${modelName}`} 
+                    key={`merode-diagram-${modelName}-${layoutResetCount}`} 
                     merodeIR={merodeIR} 
                     hoveredElementId={hoveredElementId}
                     hoverSource={hoverSource}
@@ -264,6 +265,19 @@ function App() {
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                         <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">M</text>
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => setLayoutResetCount(prev => prev + 1)} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
+                      title="Diagramm-Layout neu anordnen"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="8" y="3" width="8" height="6" rx="1"></rect>
+                        <rect x="2" y="15" width="8" height="6" rx="1"></rect>
+                        <rect x="14" y="15" width="8" height="6" rx="1"></rect>
+                        <path d="M12 9v3"></path>
+                        <path d="M18 15v-3H6v3"></path>
                       </svg>
                     </button>
                   </>

@@ -87,8 +87,20 @@ export const createMerodeClass = (merodeIR: Map<string, MerodeBaseElement>,id: s
  * @param dependentClassId the id of the dependent class of the new association
  * @param multiplicity the multiplicity of the dependent class in the new association
  * @param roleName the role name of the dependent class in the new association
+ * @param isGeneralization optional flag to mark the association as a generalization
+ * @param isAbstract optional flag to mark if the generalization's superclass is abstract
  */
-export const createMerodeAssociation = (merodeIR: Map<string, MerodeBaseElement>, id: string, name: string, masterClassId: string, dependentClassId: string, multiplicity: MerodeMultiplicity, roleName?: string) => {
+export const createMerodeAssociation = (
+  merodeIR: Map<string, MerodeBaseElement>, 
+  id: string, 
+  name: string, 
+  masterClassId: string, 
+  dependentClassId: string, 
+  multiplicity: MerodeMultiplicity, 
+  roleName?: string,
+  isGeneralization?: boolean,
+  isAbstract?: boolean
+) => {
   const merodeAssociation: MerodeAssociation = {
     id: id,
     type: 'merode:Association',
@@ -97,6 +109,8 @@ export const createMerodeAssociation = (merodeIR: Map<string, MerodeBaseElement>
     dependentClassId: dependentClassId,
     multiplicity: multiplicity,
     roleName: roleName,
+    isGeneralization,
+    isAbstract,
   };
 
   merodeIR.set(id, merodeAssociation);

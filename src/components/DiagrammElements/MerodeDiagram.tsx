@@ -94,7 +94,9 @@ const buildMerodeElements = (merodeIR: MerodeIR) => {
       data: {
         targetLabel: `${assoc.roleName || ''}`.trim(),
         isOptional,
-        isMultiple
+        isMultiple,
+        isGeneralization: assoc.isGeneralization,
+        isAbstract: assoc.isAbstract,
       }
     });
   });
