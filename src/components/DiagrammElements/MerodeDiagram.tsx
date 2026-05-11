@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -7,6 +7,7 @@ import {
   Position,
   useNodesState,
   useEdgesState,
+  useReactFlow,
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
@@ -57,6 +58,8 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 
 /**
  * Transforms the custom Merode Intermediate Representation (MerodeIR) into initial React Flow nodes and edges.
+ * @param merodeIR The MERODE Intermediate Representation containing model elements.
+ * @returns An object containing the initial nodes and edges for the diagram.
  */
 const buildMerodeElements = (merodeIR: MerodeIR) => {
   const initialNodes: Node[] = [];
@@ -101,6 +104,8 @@ const buildMerodeElements = (merodeIR: MerodeIR) => {
 
 /**
  * Calculates the center of a given layouted node to determine the optimal connection angle.
+ * @param node The React Flow node for which to calculate the center.
+ * @returns An object containing the x and y coordinates of the node's center.
  */
 const getNodeCenter = (node: Node) => {
   const width = 260;
@@ -111,6 +116,9 @@ const getNodeCenter = (node: Node) => {
 /**
  * Resolves layout routing globally by determining the best anchor points for edges based on angles and distances.
  * Fallbacks are used if preferred positions are already taken by other edges.
+ * @param layoutedNodes The array of nodes that have already been positioned.
+ * @param layoutedEdges The array of edges to be routed.
+ * @returns A new array of edges with optimally assigned source and target handles.
  */
 const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
   const finalEdges = [...layoutedEdges];
@@ -205,16 +213,27 @@ const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
 
 interface MERODEDiagramProps {
   merodeIR: MerodeIR | null;
+  hoveredElementId?: string | null;
+  hoverSource?: 'proposal' | 'diagram' | null;
+  onHoverElement?: (id: string | null) => void;
 }
 
 /**
  * Main component for rendering the MERODE Diagram using React Flow.
  * Transforms the custom Merode Intermediate Representation (MerodeIR) into interactive nodes and edges,
  * visually highlighting the existence dependencies.
+ * @param props The properties for the MERODEDiagram component.
+ * @param props.merodeIR The MERODE model data to visualize.
+ * @param props.hoveredElementId The ID of the currently hovered element (if any).
+ * @param props.hoverSource The source of the hover event ('proposal' or 'diagram').
+ * @param props.onHoverElement Callback function triggered when an element is hovered.
+ * @returns The rendered React Flow diagram component, or null if no MerodeIR is provided.
  */
-export default function MERODEDiagram({ merodeIR }: MERODEDiagramProps) {
+export default function MERODEDiagram({ merodeIR, hoveredElementId, hoverSource, onHoverElement }: MERODEDiagramProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView, getNodes, getEdges } = useReactFlow();
+  const wasZoomedByProposal = useRef(false);
 
   useEffect(() => {
     if (!merodeIR || !merodeIR.model) {
@@ -232,16 +251,104 @@ export default function MERODEDiagram({ merodeIR }: MERODEDiagramProps) {
     // 3. Prevent overlaps by smartly routing edges
     const finalEdges = assignOptimalHandles(layoutedNodes, layoutedEdges);
 
-    setNodes(layoutedNodes);
-    setEdges(finalEdges);
+    // Retain existing layout positions if the node is already present
+    setNodes((currentNodes) => layoutedNodes.map(node => {
+      const existingNode = currentNodes.find(n => n.id === node.id);
+      return existingNode ? { ...node, position: existingNode.position, className: 'diagram-element' } : { ...node, className: 'diagram-element' };
+    }));
+    
+    setEdges(finalEdges.map(e => ({ ...e, className: 'diagram-element' })));
   }, [merodeIR, setNodes, setEdges]);
+
+  // Apply highlighting based on hoveredElementId
+  useEffect(() => {
+    const nodesToHighlight = new Set<string>();
+    const edgesToHighlight = new Set<string>();
+
+    if (hoveredElementId) {
+      const allNodes = getNodes();
+      const allEdges = getEdges();
+
+      // 1. Identify explicitly hovered nodes
+      const hoveredNodeIds = new Set(
+        allNodes.filter(n => n.id === hoveredElementId || n.id.includes(hoveredElementId)).map(n => n.id)
+      );
+      
+      hoveredNodeIds.forEach(id => nodesToHighlight.add(id));
+
+      allEdges.forEach(e => {
+        // 2. Check if edge itself is hovered
+        if (e.id === hoveredElementId || e.id.includes(hoveredElementId)) {
+          edgesToHighlight.add(e.id);
+          nodesToHighlight.add(e.source);
+          nodesToHighlight.add(e.target);
+        }
+
+        // 3. Check if edge is adjacent to a hovered node
+        const isSourceHovered = hoveredNodeIds.has(e.source);
+        const isTargetHovered = hoveredNodeIds.has(e.target);
+
+        if (isSourceHovered || isTargetHovered) {
+          edgesToHighlight.add(e.id);
+
+          // Highlight adjacent classes for resolved associations (Intermediate Classes)
+          if (isSourceHovered && (e.source.includes('_Class') || e.source !== hoveredElementId)) {
+            nodesToHighlight.add(e.target);
+          }
+          if (isTargetHovered && (e.target.includes('_Class') || e.target !== hoveredElementId)) {
+            nodesToHighlight.add(e.source);
+          }
+        }
+      });
+
+      // Fit view if triggered by proposal hover
+      if (hoverSource === 'proposal' && nodesToHighlight.size > 0) {
+        wasZoomedByProposal.current = true;
+        const nodesToFit = allNodes.filter(n => nodesToHighlight.has(n.id));
+        fitView({ nodes: nodesToFit, duration: 500, padding: 0.3, maxZoom: 1.3 });
+      }
+    } else {
+      // Reset view if previously zoomed by proposal
+      if (wasZoomedByProposal.current) {
+        wasZoomedByProposal.current = false;
+        fitView({ duration: 500, padding: 0.1 });
+      }
+    }
+
+    // Update classes (avoiding trailing spaces)
+    setNodes((nds) =>
+      nds.map((n) => ({
+        ...n,
+        className: nodesToHighlight.has(n.id) ? 'diagram-element highlighted' : 'diagram-element',
+      }))
+    );
+    setEdges((eds) =>
+      eds.map((e) => ({
+        ...e,
+        className: edgesToHighlight.has(e.id) ? 'diagram-element highlighted' : 'diagram-element',
+      }))
+    );
+  }, [hoveredElementId, hoverSource, setNodes, setEdges, getNodes, getEdges, fitView]);
 
   if (!merodeIR) return null;
 
   return (
     <div style={{ width: '100%', height: '100%', border: '1px solid #444', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
       <MerodeDiagramMarkers />
-      <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} nodeTypes={nodeTypes} edgeTypes={edgeTypes} colorMode="dark" fitView>
+      <ReactFlow 
+        nodes={nodes} 
+        edges={edges} 
+        onNodesChange={onNodesChange} 
+        onEdgesChange={onEdgesChange} 
+        onNodeMouseEnter={(_, node) => onHoverElement?.(node.id)}
+        onNodeMouseLeave={() => onHoverElement?.(null)}
+        onEdgeMouseEnter={(_, edge) => onHoverElement?.(edge.id)}
+        onEdgeMouseLeave={() => onHoverElement?.(null)}
+        nodeTypes={nodeTypes} 
+        edgeTypes={edgeTypes} 
+        colorMode="dark" 
+        fitView
+      >
         <Background />
       </ReactFlow>
     </div>

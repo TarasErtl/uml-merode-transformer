@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
@@ -7,6 +7,7 @@ import {
   Position,
   useNodesState,
   useEdgesState,
+  useReactFlow,
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
@@ -61,12 +62,16 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
 
 /**
  * Maps a UML aggregation string from the metamodel to the correct diagram marker.
+ * @param type The aggregation type string (e.g., 'shared', 'composite').
+ * @returns The corresponding marker string ('aggregation', 'composition', or 'none').
  */
 const getAggregationString = (type: string) => 
   type === 'shared' ? 'aggregation' : type === 'composite' ? 'composition' : 'none';
 
 /**
  * Transforms the raw UML Intermediate Representation (UMLIR) into initial React Flow nodes and edges.
+ * @param umlIR The UML Intermediate Representation containing model elements.
+ * @returns An object containing the initial nodes and edges for the diagram.
  */
 const buildUmlElements = (umlIR: UMLIR) => {
   const initialNodes: Node[] = [];
@@ -205,6 +210,8 @@ const buildUmlElements = (umlIR: UMLIR) => {
 
 /**
  * Calculates the center of a given layouted node to determine the optimal connection angle.
+ * @param node The React Flow node for which to calculate the center.
+ * @returns An object containing the x and y coordinates of the node's center.
  */
 const getNodeCenter = (node: Node) => {
   const width = node.type === 'anchorNode' ? 1 : node.type === 'nAryNode' ? 35 : 260;
@@ -215,6 +222,9 @@ const getNodeCenter = (node: Node) => {
 /**
  * Resolves layout routing globally by determining the best anchor points for edges based on angles and distances.
  * Fallbacks are used if preferred positions are already taken by other edges.
+ * @param layoutedNodes The array of nodes that have already been positioned.
+ * @param layoutedEdges The array of edges to be routed.
+ * @returns A new array of edges with optimally assigned source and target handles.
  */
 const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
   const finalEdges = [...layoutedEdges];
@@ -309,15 +319,26 @@ const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
 
 interface UMLDiagramProps {
   umlIR: UMLIR | null;
+  hoveredElementId?: string | null;
+  hoverSource?: 'proposal' | 'diagram' | null;
+  onHoverElement?: (id: string | null) => void;
 }
 
 /**
  * Main component for rendering the interactive UML Diagram using React Flow.
  * Transforms the custom UML Intermediate Representation (UMLIR) into graphical nodes and edges.
+ * @param props The properties for the UMLDiagram component.
+ * @param props.umlIR The UML model data to visualize.
+ * @param props.hoveredElementId The ID of the currently hovered element (if any).
+ * @param props.hoverSource The source of the hover event ('proposal' or 'diagram').
+ * @param props.onHoverElement Callback function triggered when an element is hovered.
+ * @returns The rendered React Flow diagram component, or null if no UMLIR is provided.
  */
-export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
+export default function UMLDiagram({ umlIR, hoveredElementId, hoverSource, onHoverElement }: UMLDiagramProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const { fitView, getNodes, getEdges } = useReactFlow();
+  const wasZoomedByProposal = useRef(false);
 
   useEffect(() => {
     if (!umlIR || !umlIR.model) {
@@ -335,9 +356,68 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
     // 3. Prevent overlaps by smartly routing edges
     const finalEdges = assignOptimalHandles(layoutedNodes, layoutedEdges);
 
-    setNodes(layoutedNodes);
-    setEdges(finalEdges);
+    // Retain existing layout positions if the node is already present
+    setNodes((currentNodes) => layoutedNodes.map(node => {
+      const existingNode = currentNodes.find(n => n.id === node.id);
+      return existingNode ? { ...node, position: existingNode.position, className: 'diagram-element' } : { ...node, className: 'diagram-element' };
+    }));
+    
+    setEdges(finalEdges.map(e => ({ ...e, className: 'diagram-element' })));
   }, [umlIR, setNodes, setEdges]);
+
+  // Apply highlighting based on hoveredElementId
+  useEffect(() => {
+    const nodesToHighlight = new Set<string>();
+    const edgesToHighlight = new Set<string>();
+
+    if (hoveredElementId) {
+      const allNodes = getNodes();
+      const allEdges = getEdges();
+
+      const isNode = allNodes.find(n => n.id === hoveredElementId);
+      if (isNode) {
+        nodesToHighlight.add(hoveredElementId);
+        // Highlight adjacent edges
+        allEdges.forEach(e => {
+          if (e.source === hoveredElementId || e.target === hoveredElementId) {
+            edgesToHighlight.add(e.id);
+            // Highlight connected classes for N-Ary and Association Class nodes
+            if (isNode.type === 'nAryNode' || isNode.type === 'anchorNode') {
+              nodesToHighlight.add(e.source);
+              nodesToHighlight.add(e.target);
+            }
+          }
+        });
+      }
+
+      // Check edges and association class links
+      allEdges.forEach(e => {
+        if (e.id === hoveredElementId || e.id.includes(hoveredElementId)) {
+          edgesToHighlight.add(e.id);
+          nodesToHighlight.add(e.source);
+          nodesToHighlight.add(e.target);
+        }
+      });
+    }
+
+    setNodes((nds) => nds.map((n) => ({ ...n, className: `diagram-element ${nodesToHighlight.has(n.id) ? 'highlighted' : ''}` })));
+    setEdges((eds) => eds.map((e) => ({ ...e, className: `diagram-element ${edgesToHighlight.has(e.id) ? 'highlighted' : ''}` })));
+
+    if (hoveredElementId && nodesToHighlight.size > 0) {
+      if (hoverSource === 'proposal') {
+        wasZoomedByProposal.current = true;
+        const allNodes = getNodes();
+        const nodesToFit = allNodes.filter(n => nodesToHighlight.has(n.id));
+        fitView({ nodes: nodesToFit, duration: 500, padding: 0.3, maxZoom: 1.3 });
+      }
+    } else if (!hoveredElementId) {
+      if (wasZoomedByProposal.current) {
+        wasZoomedByProposal.current = false;
+        // Reset view when mouse leaves
+        fitView({ duration: 500, padding: 0.1 });
+      }
+    }
+  }, [hoveredElementId, hoverSource, setNodes, setEdges, getNodes, getEdges, fitView]);
 
   if (!umlIR) return null;
 
@@ -361,6 +441,10 @@ export default function UMLDiagram({ umlIR }: UMLDiagramProps) {
         edges={edges} 
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onNodeMouseEnter={(_, node) => onHoverElement?.(node.id)}
+        onNodeMouseLeave={() => onHoverElement?.(null)}
+        onEdgeMouseEnter={(_, edge) => onHoverElement?.(edge.id)}
+        onEdgeMouseLeave={() => onHoverElement?.(null)}
         nodeTypes={nodeTypes} 
         edgeTypes={edgeTypes}
         colorMode="dark"

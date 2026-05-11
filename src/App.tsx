@@ -19,6 +19,7 @@ import {
 } from './types/decisions';
 import { convertProposalToDecision } from "./utils/decisionConverter";
 import './App.css'; // Add CSS import
+import { ReactFlowProvider } from '@xyflow/react';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -29,6 +30,8 @@ function App() {
   const [showProposals, setShowProposals] = useState<boolean>(true);
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [decisions, setDecisions] = useState<Map<string, Decision>>(new Map()); // New state for decisions
+  const [hoveredElementId, setHoveredElementId] = useState<string | null>(null); // State for cross-diagram hover
+  const [hoverSource, setHoverSource] = useState<'proposal' | 'diagram' | null>(null);
 
   //recreates the function if umlIR or decisions change, which triggers the execution in useEffect
   const reMapModels = useCallback(() => {
@@ -89,6 +92,16 @@ function App() {
     logger.error(errorMessage);
   };
 
+  const handleProposalHover = (id: string | null) => {
+    setHoveredElementId(id);
+    setHoverSource(id ? 'proposal' : null);
+  };
+
+  const handleDiagramHover = (id: string | null) => {
+    setHoveredElementId(id);
+    setHoverSource(id ? 'diagram' : null);
+  };
+
   /**
    * handles the change of the proposal value by the user
    * @param proposalId 
@@ -109,6 +122,7 @@ function App() {
                 updated.proposedDependentClassName = updated.class2Name;
               }
               // Fehlende IDs aus dem ursprünglichen UML-Graphen laden, damit der Swap-Button funktioniert
+              // Load missing IDs from the original UML graph so the swap button functions correctly
               if (!updated.proposedMasterClassId || !updated.proposedDependentClassId) {
                 const assoc = umlIR?.model.packagedElement.find(e => e.id === proposalId) as any;
                 if (assoc && assoc.ends && assoc.ends.length >= 2) {
@@ -158,6 +172,8 @@ function App() {
         updatedDecisions.set(newDecision!.id, newDecision!);
         return updatedDecisions;
       });
+      setHoveredElementId(null); // Reset hover state when a proposal disappears
+      setHoverSource(null);
       // The reMapModels useEffect will be triggered by the setDecisions call
     }
   };
@@ -176,17 +192,33 @@ function App() {
         <div className="app-main-layout">
         {/* Main content area */}
         <main className="app-main-content">
-          {umlIR && viewMode !== 'merode' && (
-            <div className="app-diagram-container">
+          {umlIR && (
+            <div className="app-diagram-container" style={{ display: viewMode === 'merode' ? 'none' : undefined }}>
               <div className="app-diagram-wrapper">
-                <UMLDiagram key={`uml-diagram-${viewMode}`} umlIR={umlIR} />
+                <ReactFlowProvider>
+                  <UMLDiagram 
+                    key={`uml-diagram-${modelName}`} 
+                    umlIR={umlIR} 
+                    hoveredElementId={hoveredElementId}
+                    hoverSource={hoverSource}
+                    onHoverElement={handleDiagramHover}
+                  />
+                </ReactFlowProvider>
               </div>
             </div>
           )}
-          {umlIR && viewMode !== 'uml' && merodeIR && (
-            <div className="app-diagram-container">
+          {umlIR && merodeIR && (
+            <div className="app-diagram-container" style={{ display: viewMode === 'uml' ? 'none' : undefined }}>
               <div className="app-diagram-wrapper">
-                <MERODEDiagram key={`merode-diagram-${viewMode}`} merodeIR={merodeIR} />
+                <ReactFlowProvider>
+                  <MERODEDiagram 
+                    key={`merode-diagram-${modelName}`} 
+                    merodeIR={merodeIR} 
+                    hoveredElementId={hoveredElementId}
+                    hoverSource={hoverSource}
+                    onHoverElement={handleDiagramHover}
+                  />
+                </ReactFlowProvider>
               </div>
             </div>
           )}
@@ -256,6 +288,7 @@ function App() {
                 onProposalChange={handleProposalChange}
                 onSwapMasterDependent={handleSwapMasterDependent}
                 onAcceptProposal={handleAcceptProposal}
+                onHoverProposal={handleProposalHover}
               />
             </div>
           </div>
