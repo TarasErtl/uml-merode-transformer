@@ -8,14 +8,14 @@ interface UnaryAssociationProposalCardProps {
 
 const UnaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptProposal }: UnaryAssociationProposalCardProps) => {
   const fieldsToRender = [
-    { key: 'proposedClassName', label: 'Name der neuen Klasse:' },
-    { key: 'proposedRole1Name', label: 'Rollenname 1:' },
-    { key: 'proposedRole2Name', label: 'Rollenname 2:' },
+    { key: 'proposedClassName', label: 'Name of the new class:' },
+    { key: 'proposedRole1Name', label: 'Role name 1:' },
+    { key: 'proposedRole2Name', label: 'Role name 2:' },
   ];
 
   return (
     <div className="proposal-card">
-      <h3 className="proposal-card-title">Unäre Assoziation auflösen</h3>
+      <h3 className="proposal-card-title">Resolve Unary Association</h3>
       <p className="proposal-card-section">{proposal.message}</p>
       
       <div className="proposal-card-fields">
@@ -25,7 +25,7 @@ const UnaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptProp
             <input
               id={`${proposal.id}-${key}`}
               type="text"
-              value={proposal[key as keyof UnaryAssociationProposal] as string}
+              value={(proposal[key as keyof UnaryAssociationProposal] as string) || ''}
               onChange={(e) => onProposalChange(proposal.id, key, e.target.value)}
               className="proposal-card-input"
             />
@@ -38,7 +38,7 @@ const UnaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptProp
         onClick={() => onAcceptProposal(proposal)}
         className="proposal-card-button"
       >
-        Vorschlag annehmen
+        Accept proposal
       </button>
     </div>
   );

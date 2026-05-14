@@ -15,7 +15,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
 
   return (
     <div className="proposal-card">
-      <h3 className="proposal-card-title">Binäre Assoziation auflösen</h3>
+      <h3 className="proposal-card-title">Resolve Binary Association</h3>
       <p className="proposal-card-section">{proposal.message}</p>
 
       <div className="proposal-card-section">
@@ -26,7 +26,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
             onChange={handleCheckboxChange}
             
           />
-          Existenzabhängigkeit annehmen?
+          Assume existence dependency?
         </label>
       </div>
 
@@ -47,7 +47,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
         onClick={() => onAcceptProposal(proposal)}
         className="proposal-card-button"
       >
-        Vorschlag annehmen
+        Accept proposal
       </button>
     </div>
   );
@@ -55,7 +55,7 @@ const BinaryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPro
 
 const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal: BinaryAssociationProposal, onSwapMasterDependent: (id: string) => void }) => (
   <div className="proposal-card-section">
-    <p className="proposal-card-section-title">Rollenverteilung:</p>
+    <p className="proposal-card-section-title">Role distribution:</p>
     <div className="proposal-card-role-distribution">
       <div className="proposal-card-role-side">
         <span className="proposal-card-role-label">Master:</span>
@@ -72,13 +72,13 @@ const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal:
 
 const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: BinaryAssociationProposal, onProposalChange: (id: string, key: string, value: string) => void }) => {
   const fields = [
-    { key: 'proposedClassName', label: 'Name der Link-Klasse:' },
-    { key: 'proposedRole1Name', label: `Rolle zu '${proposal.class1Name}':` },
-    { key: 'proposedRole2Name', label: `Rolle zu '${proposal.class2Name}':` },
+    { key: 'proposedClassName', label: 'Name of the link class:' },
+    { key: 'proposedRole1Name', label: `Role to '${proposal.class1Name}':` },
+    { key: 'proposedRole2Name', label: `Role to '${proposal.class2Name}':` },
   ];
   return (
     <div className="proposal-card-section">
-      <p className="proposal-card-section-title-alt">Als Link-Klasse modellieren:</p>
+      <p className="proposal-card-section-title-alt">Model as link class:</p>
       <div className="proposal-card-fields">
         {fields.map(({ key, label }) => (
           <div key={key}>
@@ -86,7 +86,7 @@ const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: B
             <input
               id={`${proposal.id}-${key}`}
               type="text"
-              value={proposal[key as keyof BinaryAssociationProposal] as string}
+              value={(proposal[key as keyof BinaryAssociationProposal] as string) || ''}
               onChange={(e) => onProposalChange(proposal.id, key, e.target.value)}
               className="proposal-card-input"
             />

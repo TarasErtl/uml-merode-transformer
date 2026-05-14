@@ -227,7 +227,8 @@ const getNodeCenter = (node: Node) => {
  * @returns A new array of edges with optimally assigned source and target handles.
  */
 const assignOptimalHandles = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
-  const finalEdges = [...layoutedEdges];
+  // Deep clone edges to prevent mutating React state directly during drags
+  const finalEdges = layoutedEdges.map(e => ({ ...e }));
   const nodeConnections = new Map<string, { edge: Edge, type: 'source' | 'target', angle: number, dist: number }[]>();
   layoutedNodes.forEach(n => nodeConnections.set(n.id, []));
 
@@ -339,6 +340,7 @@ export default function UMLDiagram({ umlIR, hoveredElementId, hoverSource, onHov
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const { fitView, getNodes, getEdges } = useReactFlow();
   const wasZoomedByProposal = useRef(false);
+  const prevNodesPositions = useRef<string>('');
 
   useEffect(() => {
     if (!umlIR || !umlIR.model) {
@@ -364,6 +366,21 @@ export default function UMLDiagram({ umlIR, hoveredElementId, hoverSource, onHov
     
     setEdges(finalEdges.map(e => ({ ...e, className: 'diagram-element' })));
   }, [umlIR, setNodes, setEdges]);
+
+  // Recalculate optimal handles dynamically when nodes are dragged/moved
+  useEffect(() => {
+    if (nodes.length === 0 || edges.length === 0) return;
+
+    // Create a string signature of all node positions
+    const currentPositions = nodes.map(n => `${n.id}:${Math.round(n.position.x)},${Math.round(n.position.y)}`).join('|');
+    
+    // If positions have changed (e.g. through user drag), update the edges with new handles
+    if (currentPositions !== prevNodesPositions.current) {
+      prevNodesPositions.current = currentPositions;
+      // Use functional state update to always work with the latest edges
+      setEdges((eds) => assignOptimalHandles(nodes, eds));
+    }
+  }, [nodes, setEdges]);
 
   // Apply highlighting based on hoveredElementId
   useEffect(() => {

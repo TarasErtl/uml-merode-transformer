@@ -30,7 +30,7 @@ export const ProposalPanel = ({ proposals, onProposalChange, onAcceptProposal, o
             cardContent = <NAryAssociationProposalCard proposal={proposal} onProposalChange={onProposalChange} onAcceptProposal={onAcceptProposal} />;
           } else {
             // Fallback for unknown proposal types
-            cardContent = <div>Unbekannter Proposal-Typ: {proposal.id}</div>;
+            cardContent = <div>Unknown proposal type: {proposal.id}</div>;
           }
 
           return (

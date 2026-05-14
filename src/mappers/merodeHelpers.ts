@@ -4,6 +4,7 @@ import {
   type UMLGeneralizationEnd,
   UMLLowerBound, 
   UMLUpperBound,
+  type UMLAssociationClass,
 } from '../types/metamodels/uml';
 import {
   type MerodeClass,
@@ -21,21 +22,24 @@ import {
  * @param assocNames the role names of the new associations
  * @return the id of the new class that has been created to represent the binary association
  */
-export const createIntermediateClassForAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, className: string, assocNames: string[]) => {
-  //extract the ends of the association that should be replaced, ignoring generalizations
-  const ends = umlAssoc.ends.filter(
-    (end): end is Exclude<UMLAssociationEnd, UMLGeneralizationEnd> => end.endType !== 'generalization'
-  );
+export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation | UMLAssociationClass, className: string, assocNames: string[]) => {
+  // Extract the ends of the association that should be replaced. 
+  // Assert that Generalization ends are already filtered out before calling this function.
+  const ends = umlAssoc.ends as Exclude<UMLAssociationEnd, UMLGeneralizationEnd>[];
 
   const classId: string = `${umlAssoc.id}_Class`;
   const assocIds: string[] = ends.map((_, index) => `${umlAssoc.id}_assoc${index + 1}`);
+
+  // Extract attributes and associations if the element is an association class
+  const attributes = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.attributes as MerodeAttribute[]) : [];
+  const existingAssocIds = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.associationIds as string[]) : [];
 
   //Create the intermediate class
   createMerodeClass(merodeIR
                     , classId
                     , className
-                    , []
-                    , assocIds);
+                    , attributes
+                    , [...existingAssocIds, ...assocIds]);
 
   //Create the associations between the new intermediate class and the original classes
   for (let i = 0; i < ends.length; i++) {
@@ -51,8 +55,10 @@ export const createIntermediateClassForAssociation = (merodeIR: Map<string, Mero
   //delete the old associationId from the original classes and add the new associationId
   ends.forEach(end => {
       let originalClass: MerodeClass = merodeIR.get(end.targetClassId) as MerodeClass;
-      originalClass.associationIds = [...originalClass.associationIds.filter(id => id !== umlAssoc.id) as string[]
-                                      , `${umlAssoc.id}_assoc${ends.indexOf(end) + 1}`];
+      if (originalClass && originalClass.associationIds) {
+        originalClass.associationIds = [...originalClass.associationIds.filter(id => id !== umlAssoc.id) as string[]
+                                        , `${umlAssoc.id}_assoc${ends.indexOf(end) + 1}`];
+      }
   });
 
   return classId;                        

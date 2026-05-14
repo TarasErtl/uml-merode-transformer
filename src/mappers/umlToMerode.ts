@@ -4,6 +4,7 @@ import {
   type UMLPackagedElement,
   type UMLAssociationEnd,
   type UMLClass,
+  type UMLAssociationClass,
 } from '../types/metamodels/uml';
 import {
   type MerodeIR,
@@ -14,7 +15,7 @@ import {
 } from '../types/metamodels/merode';
 import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAryAssociationProposal } from '../types/proposals';
 import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision} from '../types/decisions';
-import { createIntermediateClassForAssociation, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeHelpers';
+import { createIntermediateClass, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeHelpers';
 import { checkAggregationAssociation, checkExistenceDependency, getRegularAssociationEnds } from './merodeHeuristics';
 import NAryAssociationProposalCard from '../components/NAryAssociationProposalCard';
 
@@ -42,7 +43,7 @@ const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc:
   const assocName2 = decision?.chosenRole2Name || end2.roleName || '';
 
   // Map the unary association by creating an intermediate class
-  createIntermediateClassForAssociation(merodeIR, umlAssoc, className, [assocName1, assocName2]);
+  createIntermediateClass(merodeIR, umlAssoc, className, [assocName1, assocName2]);
 
   if (decision) return null;
 
@@ -51,7 +52,7 @@ const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc:
     proposedClassName: classId,
     proposedRole1Name: assocName1,
     proposedRole2Name: assocName2,
-    message: `The association ${umlAssoc.id} is a unary association, it will be mapped by creating a new class ${className} and two associations between the new class and the original class`
+    message: `The association is a unary association, it will be mapped by creating a new class and two associations`
   };
 };
 
@@ -118,8 +119,9 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
     );
   } else {
     // Case 2: Non-existence dependency is assumed or decided. Create an intermediate class.
-    // TODO: Query roles for the individual associations in the proposals and decisions for binary associations?
-    createIntermediateClassForAssociation(merodeIR, umlAssoc, className, [end1.roleName ?? '', end2.roleName ?? '']);
+    const role1 = decision?.chosenRole1Name ?? end1.roleName ?? '';
+    const role2 = decision?.chosenRole2Name ?? end2.roleName ?? '';
+    createIntermediateClass(merodeIR, umlAssoc, className, [role1, role2]);
   }
 
   if (decision) return null;
@@ -130,8 +132,8 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
   const dependentName = merodeIR.get(finalDependentClassId)?.name || '';
 
   const message = isExistenceDependent
-    ? `The association ${umlAssoc.name ? `"${umlAssoc.name}" (${umlAssoc.id})` : umlAssoc.id}, between class: ${masterName} and class: ${dependentName}, is proposed to be mapped as an existence dependent association.`
-    : `The association ${umlAssoc.name ? `"${umlAssoc.name}" (${umlAssoc.id})` : umlAssoc.id}, between class: ${class1Name} and class: ${class2Name}, is proposed to be mapped as a non-existence dependent association. An intermediate class will be created.`;
+    ? `The association, between class: ${masterName} and class: ${dependentName}, is proposed to be mapped as an existence dependent association.`
+    : `The association, between class: ${class1Name} and class: ${class2Name}, is proposed to be mapped as a non-existence dependent association. An intermediate class will be created.`;
 
   return {
     id: umlAssoc.id,
@@ -167,9 +169,10 @@ const mapNaryAssociation = (MerodeIR: Map<string, MerodeModelElement>, umlAssoc:
 
     const decision = decisions.get(umlAssoc.id) as NAryAssociationDecision | undefined;
     const className = decision?.chosenClassName || `${umlAssoc.name || umlAssoc.id}_Class`;
+    const roleNames = decision?.chosenRoleNames ?? ends.map(end => end.roleName ?? '');
 
     // Map the n-ary association by creating a central intermediate class and associations to the original classes
-    createIntermediateClassForAssociation(MerodeIR, umlAssoc, className, ends.map(end => end.roleName ?? ''));
+    createIntermediateClass(MerodeIR, umlAssoc, className, roleNames);
 
     if (decision) return null;
 
@@ -177,7 +180,7 @@ const mapNaryAssociation = (MerodeIR: Map<string, MerodeModelElement>, umlAssoc:
       id: umlAssoc.id,
       proposedClassName: className,
       proposedRoleNames: ends.map(end => end.roleName ?? ''),
-      message: `The association: "${umlAssoc.name || umlAssoc.id}" is an n-ary association, and it will be mapped by creating a new intermediate class, please choose a name for the new class`
+      message: `The association is an n-ary association, and it will be mapped by creating a new intermediate class, please choose a name for the new class`
     };
 };
 
@@ -217,6 +220,10 @@ const mapGeneralisationAssociation = (merodeIR: Map<string, MerodeBaseElement>, 
   );
 };
 
+const mapAssociationClass = (merodeIR: Map<string, MerodeBaseElement>, umlAssocClass: UMLAssociationClass) => {
+  createIntermediateClass(merodeIR, umlAssocClass, umlAssocClass.name, umlAssocClass.associationIds as string[]);
+}
+
 /**
  * Maps a UML Model to a Merode IR Model
  * - first maps all the classes
@@ -227,60 +234,65 @@ const mapGeneralisationAssociation = (merodeIR: Map<string, MerodeBaseElement>, 
  * @returns the Mapped Merode IR Model, as well as the Proposals to the user
  */
 export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): { merodeIR: MerodeIR | null, proposals: Proposal[] } => {
-   const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
-   const merodeIR: Map<string, MerodeModelElement> = new Map();
-   const newProposals: Map<string, Proposal> = new Map();
+  const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
+  const merodeIR: Map<string, MerodeModelElement> = new Map();
+  const newProposals: Map<string, Proposal> = new Map();
 
-   const umlClasses = umlPackagedElements.filter(el => el.type === 'uml:Class') as UMLClass[];
+  const umlClasses = umlPackagedElements.filter(el => el.type === 'uml:Class') as UMLClass[];
+  const umlAssociationClasses = umlPackagedElements.filter(el => el.type === 'uml:AssociationClass') as UMLAssociationClass[];
+  const umlAssociations = umlPackagedElements.filter(el => el.type === 'uml:Association') as UMLAssociation[];
 
-   // First map all the classes, because every class in UML is also a class in MERODE
-   umlClasses.forEach(el => {
+  //Mapping of the Classes
+  umlClasses.forEach(el => {
         createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], el.associationIds as string[]);
-   });
+  });
 
-   // Map all the associations, depending on their type (unary, binary, n-ary)
-   umlPackagedElements.forEach(el => {
-        if (el.type === 'uml:Association') {
-            let proposal: Proposal | null = null;
-            const umlAssoc = el as UMLAssociation;
+  //Mapping of the Associations, depending on their type (unary, binary, n-ary)
+  umlAssociations.forEach(el => {
+    let proposal: Proposal | null = null;
+    const umlAssoc = el as UMLAssociation;
 
-            // Unary, Binary, Aggregation Association
-            if (umlAssoc.ends.length === 2) {          
-                // Check if it's a Unary Association (both ends point to the same class)
-                if (umlAssoc.ends[0].targetClassId === umlAssoc.ends[1].targetClassId) {
-                  proposal = mapUnaryAssociation(merodeIR, umlAssoc, decisions);
-                }
-                // check if its a generalisation/specialisation
-                else if (umlAssoc.ends[0].endType === 'generalization' || umlAssoc.ends[1].endType === 'generalization') {
-                  // No proposal needed, as it's a direct mapping
-                  mapGeneralisationAssociation(merodeIR, umlAssoc, umlClasses);
-                }
-                // Binary Association (as well as aggregation)
-                else {
-                  proposal = mapBinaryAssociation(merodeIR, umlAssoc, decisions);
-                }              
-            }
-            // N-ary Association
-            else {
-                proposal = mapNaryAssociation(merodeIR, umlAssoc, decisions);
-            }
-
-            if (proposal){
-              console.log("Generated proposal for association:", proposal);  
-              newProposals.set(proposal.id, proposal);
-            }
+    // Unary, Binary, Aggregation Association
+    if (umlAssoc.ends.length === 2) {          
+        // Check if it's a Unary Association (both ends point to the same class)
+        if (umlAssoc.ends[0].targetClassId === umlAssoc.ends[1].targetClassId) {
+          proposal = mapUnaryAssociation(merodeIR, umlAssoc, decisions);
         }
-    });
+        // check if its a generalisation/specialisation
+        else if (umlAssoc.ends[0].endType === 'generalization' || umlAssoc.ends[1].endType === 'generalization') {
+          // No proposal needed, as it's a direct mapping
+          mapGeneralisationAssociation(merodeIR, umlAssoc, umlClasses);
+        }
+        // Binary Association (as well as aggregation)
+        else {
+          proposal = mapBinaryAssociation(merodeIR, umlAssoc, decisions);
+        }              
+    }
+    // N-ary Association
+    else {
+        proposal = mapNaryAssociation(merodeIR, umlAssoc, decisions);
+    }
 
-    return {
-        merodeIR: {
-            model: {
-                id: umlIR.model.id,
-                type: 'merode:Model',
-                name: umlIR.model.name,
-                elements: Array.from(merodeIR.values())
-            }
-        },
-        proposals: Array.from(newProposals.values())
-    };
+    if (proposal){
+      console.log("Generated proposal for association:", proposal);  
+      newProposals.set(proposal.id, proposal);
+    }
+  });
+
+  //Mapping of the Association Classes
+  umlAssociationClasses.forEach(el => {
+    createIntermediateClass(merodeIR, el, el.name, el.associationIds as string[]);
+  });
+
+  return {
+      merodeIR: {
+          model: {
+              id: umlIR.model.id,
+              type: 'merode:Model',
+              name: umlIR.model.name,
+              elements: Array.from(merodeIR.values())
+          }
+      },
+      proposals: Array.from(newProposals.values())
+  };
 }

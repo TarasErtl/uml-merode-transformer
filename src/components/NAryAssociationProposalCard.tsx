@@ -15,12 +15,12 @@ const NAryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPropo
 
   return (
     <div className="proposal-card">
-      <h3 className="proposal-card-title">N-äre Assoziation auflösen</h3>
+      <h3 className="proposal-card-title">Resolve N-ary Association</h3>
       <p className="proposal-card-section">{proposal.message}</p>
       
       <div className="proposal-card-fields">
         <div>
-          <label htmlFor={`${proposal.id}-className`} className="proposal-card-label">Name der neuen Klasse:</label>
+          <label htmlFor={`${proposal.id}-className`} className="proposal-card-label">Name of the new class:</label>
           <input
             id={`${proposal.id}-className`}
             type="text"
@@ -32,11 +32,11 @@ const NAryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPropo
 
         {proposal.proposedRoleNames.map((roleName, index) => (
           <div key={`${proposal.id}-role-${index}`}>
-            <label htmlFor={`${proposal.id}-role-${index}`} className="proposal-card-label">Rollenname {index + 1}:</label>
+            <label htmlFor={`${proposal.id}-role-${index}`} className="proposal-card-label">Role name {index + 1}:</label>
             <input
               id={`${proposal.id}-role-${index}`}
               type="text"
-              value={roleName}
+              value={roleName || ''}
               onChange={(e) => handleRoleChange(index, e.target.value)}
               className="proposal-card-input"
             />
@@ -49,7 +49,7 @@ const NAryAssociationProposalCard = ({ proposal, onProposalChange, onAcceptPropo
         onClick={() => onAcceptProposal(proposal)}
         className="proposal-card-button"
       >
-        Vorschlag annehmen
+        Accept proposal
       </button>
     </div>
   );
