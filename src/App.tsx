@@ -20,6 +20,7 @@ import {
 import { convertProposalToDecision } from "./utils/decisionConverter";
 import './App.css'; // Add CSS import
 import { ReactFlowProvider } from '@xyflow/react';
+import { exportToMxp } from './exportService';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -278,6 +279,17 @@ function App() {
                         <rect x="14" y="15" width="8" height="6" rx="1"></rect>
                         <path d="M12 9v3"></path>
                         <path d="M18 15v-3H6v3"></path>
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={() => merodeIR && exportToMxp(merodeIR)} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
+                      title="Export to MXP"
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
                     </button>
                   </>

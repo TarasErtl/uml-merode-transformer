@@ -1,0 +1,1357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxp:mermaidmodel xmlns:mxp="http://merode.econ.kuleuven.ac.be/mermaid/mxp/1.5" mxp.version="1.7" jmermaid.version="1.0" timestamp="1778837428218">
+  <mxp:metamodel lastid="378">
+    <mxp:datatypes/>
+    <mxp:metaobjects>
+      <mxp:metaobject id="1" name="PartOfCollector" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="2" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="3" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="4" name="exists" type="STATE"/>
+              <mxp:metastate id="5" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="6" name="initialExists" sourcestateid="3" targetstateid="4">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="7" methodid="8" methodname="MEcrPartOfCollector"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="9" name="existsEnded" sourcestateid="4" targetstateid="5">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="10" methodid="11" methodname="MEendPartOfCollector"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="12" name="existsExists" sourcestateid="4" targetstateid="4">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="13" methodid="14" methodname="MEcrCollector"/>
+                  <mxp:metatransitionmethod safeid="15" methodid="16" methodname="MEcrPiece"/>
+                  <mxp:metatransitionmethod safeid="17" methodid="18" methodname="MEcrPieceOfItem"/>
+                  <mxp:metatransitionmethod safeid="19" methodid="20" methodname="MEendCollector"/>
+                  <mxp:metatransitionmethod safeid="21" methodid="22" methodname="MEendPiece"/>
+                  <mxp:metatransitionmethod safeid="23" methodid="24" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="25" name="Collector" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="26" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="27" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="28" name="exists" type="STATE"/>
+              <mxp:metastate id="29" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="30" name="initialExists" sourcestateid="27" targetstateid="28">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="31" methodid="32" methodname="MEcrCollector"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="33" name="existsEnded" sourcestateid="28" targetstateid="29">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="34" methodid="35" methodname="MEendCollector"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="36" name="existsExists" sourcestateid="28" targetstateid="28">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="37" methodid="38" methodname="MEcrPiece"/>
+                  <mxp:metatransitionmethod safeid="39" methodid="40" methodname="MEcrPieceOfItem"/>
+                  <mxp:metatransitionmethod safeid="41" methodid="42" methodname="MEendPiece"/>
+                  <mxp:metatransitionmethod safeid="43" methodid="44" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="45" name="Piece" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="46" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="47" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="48" name="exists" type="STATE"/>
+              <mxp:metastate id="49" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="50" name="initialExists" sourcestateid="47" targetstateid="48">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="51" methodid="52" methodname="MEcrPiece"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="53" name="existsEnded" sourcestateid="48" targetstateid="49">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="54" methodid="55" methodname="MEendPiece"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="56" name="existsExists" sourcestateid="48" targetstateid="48">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="57" methodid="58" methodname="MEcrPieceOfItem"/>
+                  <mxp:metatransitionmethod safeid="59" methodid="60" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="61" name="PieceOfItem" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="62" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="63" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="64" name="exists" type="STATE"/>
+              <mxp:metastate id="65" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="66" name="initialExists" sourcestateid="63" targetstateid="64">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="67" methodid="68" methodname="MEcrPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="69" name="existsEnded" sourcestateid="64" targetstateid="65">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="70" methodid="71" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="72" name="Item" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes>
+          <mxp:metaattribute id="73" name="size" type="Integer">
+            <mxp:description/>
+            <mxp:validation/>
+            <mxp:implementation/>
+          </mxp:metaattribute>
+        </mxp:metaattributes>
+        <mxp:metafsms>
+          <mxp:metafsm id="74" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="75" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="76" name="exists" type="STATE"/>
+              <mxp:metastate id="77" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="78" name="initialExists" sourcestateid="75" targetstateid="76">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="79" methodid="80" methodname="MEcrItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="81" name="existsEnded" sourcestateid="76" targetstateid="77">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="82" methodid="83" methodname="MEendItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="84" name="existsExists" sourcestateid="76" targetstateid="76">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="85" methodid="86" methodname="MEcrNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="87" methodid="88" methodname="MEcrPieceOfItem"/>
+                  <mxp:metatransitionmethod safeid="89" methodid="90" methodname="MEendNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="91" methodid="92" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="93" name="NAryIntermediateClass" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="94" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="95" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="96" name="exists" type="STATE"/>
+              <mxp:metastate id="97" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="98" name="initialExists" sourcestateid="95" targetstateid="96">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="99" methodid="100" methodname="MEcrNAryIntermediateClass"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="101" name="existsEnded" sourcestateid="96" targetstateid="97">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="102" methodid="103" methodname="MEendNAryIntermediateClass"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="104" name="ItemNAry1" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="105" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="106" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="107" name="exists" type="STATE"/>
+              <mxp:metastate id="108" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="109" name="initialExists" sourcestateid="106" targetstateid="107">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="110" methodid="111" methodname="MEcrItemNAry1"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="112" name="existsEnded" sourcestateid="107" targetstateid="108">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="113" methodid="114" methodname="MEendItemNAry1"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="115" name="existsExists" sourcestateid="107" targetstateid="107">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="116" methodid="117" methodname="MEcrNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="118" methodid="119" methodname="MEendNAryIntermediateClass"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="120" name="ItemNAry2" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="121" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="122" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="123" name="exists" type="STATE"/>
+              <mxp:metastate id="124" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="125" name="initialExists" sourcestateid="122" targetstateid="123">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="126" methodid="127" methodname="MEcrItemNAry2"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="128" name="existsEnded" sourcestateid="123" targetstateid="124">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="129" methodid="130" methodname="MEendItemNAry2"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="131" name="existsExists" sourcestateid="123" targetstateid="123">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="132" methodid="133" methodname="MEcrNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="134" methodid="135" methodname="MEendNAryIntermediateClass"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="136" name="Exhibition" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="137" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="138" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="139" name="exists" type="STATE"/>
+              <mxp:metastate id="140" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="141" name="initialExists" sourcestateid="138" targetstateid="139">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="142" methodid="143" methodname="MEcrExhibition"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="144" name="existsEnded" sourcestateid="139" targetstateid="140">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="145" methodid="146" methodname="MEendExhibition"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="147" name="existsExists" sourcestateid="139" targetstateid="139">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="148" methodid="149" methodname="MEcrEmployeeAssignment"/>
+                  <mxp:metatransitionmethod safeid="150" methodid="151" methodname="MEcrExhibitionPosition"/>
+                  <mxp:metatransitionmethod safeid="152" methodid="153" methodname="MEcrItem"/>
+                  <mxp:metatransitionmethod safeid="154" methodid="155" methodname="MEcrNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="156" methodid="157" methodname="MEcrPieceOfItem"/>
+                  <mxp:metatransitionmethod safeid="158" methodid="159" methodname="MEendEmployeeAssignment"/>
+                  <mxp:metatransitionmethod safeid="160" methodid="161" methodname="MEendExhibitionPosition"/>
+                  <mxp:metatransitionmethod safeid="162" methodid="163" methodname="MEendItem"/>
+                  <mxp:metatransitionmethod safeid="164" methodid="165" methodname="MEendNAryIntermediateClass"/>
+                  <mxp:metatransitionmethod safeid="166" methodid="167" methodname="MEendPieceOfItem"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="168" name="EmployeeAssignment" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="169" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="170" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="171" name="exists" type="STATE"/>
+              <mxp:metastate id="172" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="173" name="initialExists" sourcestateid="170" targetstateid="171">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="174" methodid="175" methodname="MEcrEmployeeAssignment"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="176" name="existsEnded" sourcestateid="171" targetstateid="172">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="177" methodid="178" methodname="MEendEmployeeAssignment"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="179" name="ExhibitionPosition" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="180" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="181" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="182" name="exists" type="STATE"/>
+              <mxp:metastate id="183" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="184" name="initialExists" sourcestateid="181" targetstateid="182">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="185" methodid="186" methodname="MEcrExhibitionPosition"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="187" name="existsEnded" sourcestateid="182" targetstateid="183">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="188" methodid="189" methodname="MEendExhibitionPosition"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="190" name="Location" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="191" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="192" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="193" name="exists" type="STATE"/>
+              <mxp:metastate id="194" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="195" name="initialExists" sourcestateid="192" targetstateid="193">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="196" methodid="197" methodname="MEcrLocation"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="198" name="existsEnded" sourcestateid="193" targetstateid="194">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="199" methodid="200" methodname="MEendLocation"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="201" name="existsExists" sourcestateid="193" targetstateid="193">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="202" methodid="203" methodname="MEcrAssignment"/>
+                  <mxp:metatransitionmethod safeid="204" methodid="205" methodname="MEcrExhibitionPosition"/>
+                  <mxp:metatransitionmethod safeid="206" methodid="207" methodname="MEendAssignment"/>
+                  <mxp:metatransitionmethod safeid="208" methodid="209" methodname="MEendExhibitionPosition"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="210" name="Assignment" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="211" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="212" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="213" name="exists" type="STATE"/>
+              <mxp:metastate id="214" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="215" name="initialExists" sourcestateid="212" targetstateid="213">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="216" methodid="217" methodname="MEcrAssignment"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="218" name="existsEnded" sourcestateid="213" targetstateid="214">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="219" methodid="220" methodname="MEendAssignment"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="221" name="Room" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="222" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="223" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="224" name="exists" type="STATE"/>
+              <mxp:metastate id="225" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="226" name="initialExists" sourcestateid="223" targetstateid="224">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="227" methodid="228" methodname="MEcrRoom"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="229" name="existsEnded" sourcestateid="224" targetstateid="225">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="230" methodid="231" methodname="MEendRoom"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="232" name="existsExists" sourcestateid="224" targetstateid="224">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="233" methodid="234" methodname="MEcrAssignment"/>
+                  <mxp:metatransitionmethod safeid="235" methodid="236" methodname="MEendAssignment"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="237" name="PartOfRoom" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="238" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="239" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="240" name="exists" type="STATE"/>
+              <mxp:metastate id="241" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="242" name="initialExists" sourcestateid="239" targetstateid="240">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="243" methodid="244" methodname="MEcrPartOfRoom"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="245" name="existsEnded" sourcestateid="240" targetstateid="241">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="246" methodid="247" methodname="MEendPartOfRoom"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="248" name="existsExists" sourcestateid="240" targetstateid="240">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="249" methodid="250" methodname="MEcrAssignment"/>
+                  <mxp:metatransitionmethod safeid="251" methodid="252" methodname="MEcrRoom"/>
+                  <mxp:metatransitionmethod safeid="253" methodid="254" methodname="MEendAssignment"/>
+                  <mxp:metatransitionmethod safeid="255" methodid="256" methodname="MEendRoom"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="257" name="Employee" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="258" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="259" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="260" name="exists" type="STATE"/>
+              <mxp:metastate id="261" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="262" name="initialExists" sourcestateid="259" targetstateid="260">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="263" methodid="264" methodname="MEcrEmployee"/>
+                  <mxp:metatransitionmethod safeid="265" methodid="266" methodname="MEcrBeing"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="267" name="existsEnded" sourcestateid="260" targetstateid="261">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="268" methodid="269" methodname="MEendEmployee"/>
+                  <mxp:metatransitionmethod safeid="270" methodid="271" methodname="MEendBeing"/>
+                  <mxp:metatransitionmethod safeid="272" methodid="273" methodname="MEendPerson"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="274" name="existsExists" sourcestateid="260" targetstateid="260">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="275" methodid="276" methodname="MEcrEmployeeAssignment"/>
+                  <mxp:metatransitionmethod safeid="277" methodid="278" methodname="MEcrEmployeeCoaching"/>
+                  <mxp:metatransitionmethod safeid="279" methodid="280" methodname="MEcrEmployeeCoaching"/>
+                  <mxp:metatransitionmethod safeid="281" methodid="282" methodname="MEendEmployeeAssignment"/>
+                  <mxp:metatransitionmethod safeid="283" methodid="284" methodname="MEendEmployeeCoaching"/>
+                  <mxp:metatransitionmethod safeid="285" methodid="286" methodname="MEendEmployeeCoaching"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="287" name="EmployeeCoaching" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="288" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="289" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="290" name="exists" type="STATE"/>
+              <mxp:metastate id="291" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="292" name="initialExists" sourcestateid="289" targetstateid="290">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="293" methodid="294" methodname="MEcrEmployeeCoaching"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="295" name="existsEnded" sourcestateid="290" targetstateid="291">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="296" methodid="297" methodname="MEendEmployeeCoaching"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="298" name="Person" abstract="false">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes>
+          <mxp:metaattribute id="299" name="Name" type="String">
+            <mxp:description/>
+            <mxp:validation/>
+            <mxp:implementation/>
+          </mxp:metaattribute>
+        </mxp:metaattributes>
+        <mxp:metafsms>
+          <mxp:metafsm id="300" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="301" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="302" name="exists" type="STATE"/>
+              <mxp:metastate id="303" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="304" name="existsEnded" sourcestateid="302" targetstateid="303">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="305" methodid="306" methodname="MEendPerson"/>
+                  <mxp:metatransitionmethod safeid="307" methodid="308" methodname="MEendBeing"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="309" name="initialExists" sourcestateid="301" targetstateid="302">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="310" methodid="311" methodname="MEcrBeing"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+      <mxp:metaobject id="312" name="Being" abstract="true">
+        <mxp:metadescription/>
+        <mxp:metaconstraints/>
+        <mxp:metamultiplepropagationconstraints/>
+        <mxp:metaattributes/>
+        <mxp:metafsms>
+          <mxp:metafsm id="313" name="DEFAULT" type="DEFAULT" codegeneration="true">
+            <mxp:metastates>
+              <mxp:metastate id="314" name="initial" type="INITIAL_STATE"/>
+              <mxp:metastate id="315" name="exists" type="STATE"/>
+              <mxp:metastate id="316" name="ended" type="FINAL_STATE"/>
+            </mxp:metastates>
+            <mxp:metatransitions>
+              <mxp:metatransition id="317" name="initialExists" sourcestateid="314" targetstateid="315">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="318" methodid="319" methodname="MEcrBeing"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+              <mxp:metatransition id="320" name="existsEnded" sourcestateid="315" targetstateid="316">
+                <mxp:metatransitionmethods>
+                  <mxp:metatransitionmethod safeid="321" methodid="322" methodname="MEendBeing"/>
+                </mxp:metatransitionmethods>
+              </mxp:metatransition>
+            </mxp:metatransitions>
+          </mxp:metafsm>
+        </mxp:metafsms>
+      </mxp:metaobject>
+    </mxp:metaobjects>
+    <mxp:metaevents>
+      <mxp:metaevent id="323" name="EVcrPartOfCollector">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="324" name="EVendPartOfCollector">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="325" name="EVcrCollector">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="326" name="EVendCollector">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="327" name="EVcrPiece">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="328" name="EVendPiece">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="329" name="EVcrPieceOfItem">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="330" name="EVendPieceOfItem">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="331" name="EVcrItem">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="332" name="EVendItem">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="333" name="EVcrNAryIntermediateClass">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="334" name="EVendNAryIntermediateClass">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="335" name="EVcrItemNAry1">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="336" name="EVendItemNAry1">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="337" name="EVcrItemNAry2">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="338" name="EVendItemNAry2">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="339" name="EVcrExhibition">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="340" name="EVendExhibition">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="341" name="EVcrEmployeeAssignment">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="342" name="EVendEmployeeAssignment">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="343" name="EVcrExhibitionPosition">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="344" name="EVendExhibitionPosition">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="345" name="EVcrLocation">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="346" name="EVendLocation">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="347" name="EVcrAssignment">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="348" name="EVendAssignment">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="349" name="EVcrRoom">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="350" name="EVendRoom">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="351" name="EVcrPartOfRoom">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="352" name="EVendPartOfRoom">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="353" name="EVcrEmployee">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="354" name="EVendEmployee">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="355" name="EVcrEmployeeCoaching">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="356" name="EVendEmployeeCoaching">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="357" name="EVendPerson">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="358" name="EVcrBeing">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+      <mxp:metaevent id="359" name="EVendBeing">
+        <mxp:metadescription/>
+        <mxp:metaattributes/>
+      </mxp:metaevent>
+    </mxp:metaevents>
+    <mxp:metaspecialisedevents/>
+    <mxp:metadependencies>
+      <mxp:metadependency id="360" name="PartOfCollector_Collector" type="MANDATORY_1" master="1" dependent="25" masterrole="PartOfCollector" dependentrole="Collector"/>
+      <mxp:metadependency id="361" name="Collector_Piece" type="OPTIONAL_N" master="25" dependent="45" masterrole="Collector" dependentrole="Piece"/>
+      <mxp:metadependency id="362" name="Piece_PieceOfItem" type="OPTIONAL_N" master="45" dependent="61" masterrole="Piece" dependentrole="PieceOfItem"/>
+      <mxp:metadependency id="363" name="Item_PieceOfItem" type="OPTIONAL_N" master="72" dependent="61" masterrole="Item" dependentrole="PieceOfItem"/>
+      <mxp:metadependency id="364" name="ItemNAry1_NAryIntermediateClass" type="MANDATORY_1" master="104" dependent="93" masterrole="ItemNAry1" dependentrole="NAryIntermediateClass"/>
+      <mxp:metadependency id="365" name="ItemNAry2_NAryIntermediateClass" type="MANDATORY_N" master="120" dependent="93" masterrole="ItemNAry2" dependentrole="NAryIntermediateClass"/>
+      <mxp:metadependency id="366" name="Item_NAryIntermediateClass" type="OPTIONAL_1" master="72" dependent="93" masterrole="Item" dependentrole="NAryIntermediateClass"/>
+      <mxp:metadependency id="367" name="Exhibition_Item" type="OPTIONAL_N" master="136" dependent="72" masterrole="Exhibition" dependentrole="Item"/>
+      <mxp:metadependency id="368" name="Exhibition_EmployeeAssignment" type="OPTIONAL_N" master="136" dependent="168" masterrole="Exhibition" dependentrole="EmployeeAssignment"/>
+      <mxp:metadependency id="369" name="Exhibition_ExhibitionPosition" type="OPTIONAL_N" master="136" dependent="179" masterrole="Exhibition" dependentrole="ExhibitionPosition"/>
+      <mxp:metadependency id="370" name="Location_ExhibitionPosition" type="OPTIONAL_1" master="190" dependent="179" masterrole="Location" dependentrole="ExhibitionPosition"/>
+      <mxp:metadependency id="371" name="PartOfRoom_Room" type="OPTIONAL_1" master="237" dependent="221" masterrole="PartOfRoom" dependentrole="Room"/>
+      <mxp:metadependency id="372" name="Room_Assignment" type="OPTIONAL_N" master="221" dependent="210" masterrole="Room" dependentrole="Assignment"/>
+      <mxp:metadependency id="373" name="Location_Assignment" type="OPTIONAL_N" master="190" dependent="210" masterrole="Location" dependentrole="Assignment"/>
+      <mxp:metadependency id="374" name="Employee_EmployeeAssignment" type="MANDATORY_N" master="257" dependent="168" masterrole="Employee" dependentrole="EmployeeAssignment"/>
+      <mxp:metadependency id="375" name="coachOf_EmployeeCoaching" type="OPTIONAL_1" master="257" dependent="287" masterrole="coachOf" dependentrole="EmployeeCoaching"/>
+      <mxp:metadependency id="376" name="coachedBy_EmployeeCoaching1" type="OPTIONAL_N" master="257" dependent="287" masterrole="coachedBy" dependentrole="EmployeeCoaching1"/>
+    </mxp:metadependencies>
+    <mxp:metainheritances>
+      <mxp:metainheritance id="377" supertypeid="298" subtypeid="257"/>
+      <mxp:metainheritance id="378" supertypeid="312" subtypeid="298"/>
+    </mxp:metainheritances>
+    <mxp:metamethods>
+      <mxp:metamethod id="8" name="MEcrPartOfCollector" provenance="OWNED" type="CREATE" ownerobjectid="1" ownereventid="323">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="11" name="MEendPartOfCollector" provenance="OWNED" type="END" ownerobjectid="1" ownereventid="324">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="32" name="MEcrCollector" provenance="OWNED" type="CREATE" ownerobjectid="25" ownereventid="325">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="35" name="MEendCollector" provenance="OWNED" type="END" ownerobjectid="25" ownereventid="326">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="52" name="MEcrPiece" provenance="OWNED" type="CREATE" ownerobjectid="45" ownereventid="327">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="55" name="MEendPiece" provenance="OWNED" type="END" ownerobjectid="45" ownereventid="328">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="14" name="MEcrCollector" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="325" viamethod="32" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="20" name="MEendCollector" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="326" viamethod="35" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="38" name="MEcrPiece" provenance="ACQUIRED" type="MODIFY" ownerobjectid="25" ownereventid="327" viamethod="52" viadependency="361">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="16" name="MEcrPiece" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="327" viamethod="38" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="42" name="MEendPiece" provenance="ACQUIRED" type="MODIFY" ownerobjectid="25" ownereventid="328" viamethod="55" viadependency="361">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="22" name="MEendPiece" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="328" viamethod="42" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="68" name="MEcrPieceOfItem" provenance="OWNED" type="CREATE" ownerobjectid="61" ownereventid="329">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="71" name="MEendPieceOfItem" provenance="OWNED" type="END" ownerobjectid="61" ownereventid="330">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="58" name="MEcrPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="45" ownereventid="329" viamethod="68" viadependency="362">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="40" name="MEcrPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="25" ownereventid="329" viamethod="58" viadependency="361">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="18" name="MEcrPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="329" viamethod="40" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="60" name="MEendPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="45" ownereventid="330" viamethod="71" viadependency="362">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="44" name="MEendPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="25" ownereventid="330" viamethod="60" viadependency="361">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="24" name="MEendPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="1" ownereventid="330" viamethod="44" viadependency="360">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="80" name="MEcrItem" provenance="OWNED" type="CREATE" ownerobjectid="72" ownereventid="331">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="83" name="MEendItem" provenance="OWNED" type="END" ownerobjectid="72" ownereventid="332">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="88" name="MEcrPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="72" ownereventid="329" viamethod="68" viadependency="363">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="92" name="MEendPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="72" ownereventid="330" viamethod="71" viadependency="363">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="100" name="MEcrNAryIntermediateClass" provenance="OWNED" type="CREATE" ownerobjectid="93" ownereventid="333">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="103" name="MEendNAryIntermediateClass" provenance="OWNED" type="END" ownerobjectid="93" ownereventid="334">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="111" name="MEcrItemNAry1" provenance="OWNED" type="CREATE" ownerobjectid="104" ownereventid="335">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="114" name="MEendItemNAry1" provenance="OWNED" type="END" ownerobjectid="104" ownereventid="336">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="127" name="MEcrItemNAry2" provenance="OWNED" type="CREATE" ownerobjectid="120" ownereventid="337">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="130" name="MEendItemNAry2" provenance="OWNED" type="END" ownerobjectid="120" ownereventid="338">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="117" name="MEcrNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="104" ownereventid="333" viamethod="100" viadependency="364">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="119" name="MEendNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="104" ownereventid="334" viamethod="103" viadependency="364">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="133" name="MEcrNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="120" ownereventid="333" viamethod="100" viadependency="365">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="135" name="MEendNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="120" ownereventid="334" viamethod="103" viadependency="365">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="86" name="MEcrNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="72" ownereventid="333" viamethod="100" viadependency="366">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="90" name="MEendNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="72" ownereventid="334" viamethod="103" viadependency="366">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="143" name="MEcrExhibition" provenance="OWNED" type="CREATE" ownerobjectid="136" ownereventid="339">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="146" name="MEendExhibition" provenance="OWNED" type="END" ownerobjectid="136" ownereventid="340">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="153" name="MEcrItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="331" viamethod="80" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="163" name="MEendItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="332" viamethod="83" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="157" name="MEcrPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="329" viamethod="88" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="167" name="MEendPieceOfItem" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="330" viamethod="92" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="155" name="MEcrNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="333" viamethod="86" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="165" name="MEendNAryIntermediateClass" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="334" viamethod="90" viadependency="367">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="175" name="MEcrEmployeeAssignment" provenance="OWNED" type="CREATE" ownerobjectid="168" ownereventid="341">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="178" name="MEendEmployeeAssignment" provenance="OWNED" type="END" ownerobjectid="168" ownereventid="342">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="149" name="MEcrEmployeeAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="341" viamethod="175" viadependency="368">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="159" name="MEendEmployeeAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="342" viamethod="178" viadependency="368">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="186" name="MEcrExhibitionPosition" provenance="OWNED" type="CREATE" ownerobjectid="179" ownereventid="343">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="189" name="MEendExhibitionPosition" provenance="OWNED" type="END" ownerobjectid="179" ownereventid="344">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="197" name="MEcrLocation" provenance="OWNED" type="CREATE" ownerobjectid="190" ownereventid="345">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="200" name="MEendLocation" provenance="OWNED" type="END" ownerobjectid="190" ownereventid="346">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="151" name="MEcrExhibitionPosition" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="343" viamethod="186" viadependency="369">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="161" name="MEendExhibitionPosition" provenance="ACQUIRED" type="MODIFY" ownerobjectid="136" ownereventid="344" viamethod="189" viadependency="369">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="205" name="MEcrExhibitionPosition" provenance="ACQUIRED" type="MODIFY" ownerobjectid="190" ownereventid="343" viamethod="186" viadependency="370">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="209" name="MEendExhibitionPosition" provenance="ACQUIRED" type="MODIFY" ownerobjectid="190" ownereventid="344" viamethod="189" viadependency="370">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="217" name="MEcrAssignment" provenance="OWNED" type="CREATE" ownerobjectid="210" ownereventid="347">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="220" name="MEendAssignment" provenance="OWNED" type="END" ownerobjectid="210" ownereventid="348">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="228" name="MEcrRoom" provenance="OWNED" type="CREATE" ownerobjectid="221" ownereventid="349">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="231" name="MEendRoom" provenance="OWNED" type="END" ownerobjectid="221" ownereventid="350">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="244" name="MEcrPartOfRoom" provenance="OWNED" type="CREATE" ownerobjectid="237" ownereventid="351">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="247" name="MEendPartOfRoom" provenance="OWNED" type="END" ownerobjectid="237" ownereventid="352">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="252" name="MEcrRoom" provenance="ACQUIRED" type="MODIFY" ownerobjectid="237" ownereventid="349" viamethod="228" viadependency="371">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="256" name="MEendRoom" provenance="ACQUIRED" type="MODIFY" ownerobjectid="237" ownereventid="350" viamethod="231" viadependency="371">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="234" name="MEcrAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="221" ownereventid="347" viamethod="217" viadependency="372">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="250" name="MEcrAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="237" ownereventid="347" viamethod="234" viadependency="371">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="236" name="MEendAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="221" ownereventid="348" viamethod="220" viadependency="372">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="254" name="MEendAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="237" ownereventid="348" viamethod="236" viadependency="371">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="203" name="MEcrAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="190" ownereventid="347" viamethod="217" viadependency="373">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="207" name="MEendAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="190" ownereventid="348" viamethod="220" viadependency="373">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="264" name="MEcrEmployee" provenance="OWNED" type="CREATE" ownerobjectid="257" ownereventid="353">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="269" name="MEendEmployee" provenance="OWNED" type="END" ownerobjectid="257" ownereventid="354">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="276" name="MEcrEmployeeAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="341" viamethod="175" viadependency="374">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="282" name="MEendEmployeeAssignment" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="342" viamethod="178" viadependency="374">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="294" name="MEcrEmployeeCoaching" provenance="OWNED" type="CREATE" ownerobjectid="287" ownereventid="355">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="297" name="MEendEmployeeCoaching" provenance="OWNED" type="END" ownerobjectid="287" ownereventid="356">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="280" name="MEcrEmployeeCoaching" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="355" viamethod="294" viadependency="375">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="286" name="MEendEmployeeCoaching" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="356" viamethod="297" viadependency="375">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="278" name="MEcrEmployeeCoaching" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="355" viamethod="294" viadependency="376">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="284" name="MEendEmployeeCoaching" provenance="ACQUIRED" type="MODIFY" ownerobjectid="257" ownereventid="356" viamethod="297" viadependency="376">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="306" name="MEendPerson" provenance="OWNED" type="END" ownerobjectid="298" ownereventid="357">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="273" name="MEendPerson" provenance="INHERITED" type="END" ownerobjectid="257" ownereventid="357" viamethod="306" viainheritance="377">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="319" name="MEcrBeing" provenance="OWNED" type="CREATE" ownerobjectid="312" ownereventid="358">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="322" name="MEendBeing" provenance="OWNED" type="END" ownerobjectid="312" ownereventid="359">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="311" name="MEcrBeing" provenance="INHERITED" type="CREATE" ownerobjectid="298" ownereventid="358" viamethod="319" viainheritance="378">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="308" name="MEendBeing" provenance="INHERITED" type="END" ownerobjectid="298" ownereventid="359" viamethod="322" viainheritance="378">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="266" name="MEcrBeing" provenance="INHERITED" type="CREATE" ownerobjectid="257" ownereventid="358" viamethod="311" viainheritance="377">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+      <mxp:metamethod id="271" name="MEendBeing" provenance="INHERITED" type="END" ownerobjectid="257" ownereventid="359" viamethod="308" viainheritance="377">
+        <mxp:metaprecondition/>
+        <mxp:metaimplementation/>
+        <mxp:metapostcondition/>
+        <mxp:metaattributes/>
+      </mxp:metamethod>
+    </mxp:metamethods>
+  </mxp:metamodel>
+  <mxp:guimodel currentview="1" topview.lastid="1">
+    <mxp:view id="1" name="Main" isdefault="true">
+      <mxp:guidescription>The main view</mxp:guidescription>
+      <mxp:guiobjects>
+        <mxp:guiobject refid="1" location="0.00!100.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="25" location="0.00!200.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="45" location="0.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="61" location="0.00!400.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="72" location="150.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="93" location="270.00!400.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="104" location="310.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="120" location="460.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="136" location="455.00!200.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="168" location="840.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="179" location="610.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="190" location="760.00!200.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="210" location="1035.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="221" location="915.00!200.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="237" location="915.00!100.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="257" location="1110.00!200.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="287" location="1230.00!300.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="298" location="1110.00!100.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+        <mxp:guiobject refid="312" location="1110.00!0.00" size="100.00!50.00" borderthickness="1" bordercolor="0-0-0" backgroundcolor="255-255-255" gradientcolor="null" textcolor="0-0-0" fontfamily="Arial" fontsize="12" fontbold="false" fontitalic="false"/>
+      </mxp:guiobjects>
+    </mxp:view>
+  </mxp:guimodel>
+</mxp:mermaidmodel>
