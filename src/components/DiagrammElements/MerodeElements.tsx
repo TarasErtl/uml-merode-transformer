@@ -20,6 +20,16 @@ const InvisibleHandles = () => {
 };
 
 /**
+ * Helper function to map visibility strings to UML symbols
+ */
+const getVisibilitySymbol = (visibility?: string) => {
+  if (visibility === 'public') return '+ ';
+  if (visibility === 'private') return '- ';
+  if (visibility === 'protected') return '# ';
+  return ''; // Default to no symbol instead of '#' if undefined
+};
+
+/**
  * Calculates the bezier control points for self-loop edges.
  */
 const getSelfLoopControlPoint = (x: number, y: number, pos: Position) => {
@@ -72,6 +82,16 @@ export const MerodeClassNode = ({ data }: any) => {
         )}
       </div>
       
+      {data.operations && data.operations.length > 0 && (
+        <div style={{ padding: '12px', borderTop: '1px solid #555' }}>
+          {data.operations.map((op: any) => (
+            <div key={op.id} style={{ marginBottom: '4px' }}>
+              {getVisibilitySymbol(op.visibility)}{op.name}()
+            </div>
+          ))}
+        </div>
+      )}
+
       <InvisibleHandles />
     </div>
   );

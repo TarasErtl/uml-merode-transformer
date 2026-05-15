@@ -87,7 +87,7 @@ const buildMerodeElements = (merodeIR: MerodeIR) => {
       id: cls.id,
       type: 'merodeClass',
       position: { x: 0, y: 0 },
-      data: { label: cls.name, attributes: cls.attributes }
+      data: { label: cls.name, attributes: cls.attributes, operations: cls.operations }
     });
   });
 

@@ -32,6 +32,7 @@ export type MerodeModelElement = MerodeClass | MerodeAssociation
 export interface MerodeClass extends MerodeBaseElement {
   readonly type: 'merode:Class';
   attributes: readonly MerodeAttribute[];
+  operations: readonly MerodeOperation[];
   associationIds: readonly string[];
 }
 
@@ -40,6 +41,14 @@ export interface MerodeClass extends MerodeBaseElement {
  */
 export interface MerodeAttribute extends MerodeBaseElement {
   readonly type: 'merode:Attribute';
+}
+
+/**
+ * Represents a Merode operation
+ */
+export interface MerodeOperation extends MerodeBaseElement {
+  readonly type?: 'merode:Operation';
+  readonly visibility?: 'public' | 'private' | 'protected';
 }
 
 /**

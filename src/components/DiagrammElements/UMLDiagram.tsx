@@ -87,7 +87,7 @@ const buildUmlElements = (umlIR: UMLIR) => {
       id: cls.id,
       type: 'umlClass',
       position: { x: 0, y: 0 },
-      data: { label: cls.name, attributes: cls.attributes, isAbstract: cls.isAbstract }
+      data: { label: cls.name, attributes: cls.attributes, operations: cls.operations, isAbstract: cls.isAbstract }
     });
   });
 

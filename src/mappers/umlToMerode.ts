@@ -9,6 +9,7 @@ import {
 import {
   type MerodeIR,
   type MerodeAttribute,
+  type MerodeOperation,
   type MerodeBaseElement,
   type MerodeModelElement,
   MerodeMultiplicity,
@@ -244,7 +245,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
 
   //Mapping of the Classes
   umlClasses.forEach(el => {
-        createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], el.associationIds as string[]);
+        createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], el.operations as MerodeOperation[], el.associationIds as string[]);
   });
 
   //Mapping of the Associations, depending on their type (unary, binary, n-ary)

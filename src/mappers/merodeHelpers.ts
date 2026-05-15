@@ -9,6 +9,7 @@ import {
 import {
   type MerodeClass,
   type MerodeAttribute,
+  type MerodeOperation,
   type MerodeAssociation,
   MerodeMultiplicity,
   type MerodeBaseElement,
@@ -32,6 +33,7 @@ export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>
 
   // Extract attributes and associations if the element is an association class
   const attributes = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.attributes as MerodeAttribute[]) : [];
+  const operations = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.operations as MerodeOperation[]) : [];
   const existingAssocIds = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.associationIds as string[]) : [];
 
   //Create the intermediate class
@@ -39,6 +41,7 @@ export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>
                     , classId
                     , className
                     , attributes
+                    , operations
                     , [...existingAssocIds, ...assocIds]);
 
   //Create the associations between the new intermediate class and the original classes
@@ -70,14 +73,16 @@ export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>
  * @param id the id of the new class
  * @param name the name of the new class
  * @param attributes the attributes of the new class
+ * @param operations the operations of the new class
  * @param associationIds the ids of the associations of the new class
  */
-export const createMerodeClass = (merodeIR: Map<string, MerodeBaseElement>,id: string, name: string, attributes: MerodeAttribute[], associationIds: string[]) => {
+export const createMerodeClass = (merodeIR: Map<string, MerodeBaseElement>,id: string, name: string, attributes: MerodeAttribute[], operations: MerodeOperation[], associationIds: string[]) => {
   const merodeClass: MerodeClass = {  
     id: id,
     type: 'merode:Class',
     name: name,
     attributes: attributes,
+    operations: operations,
     associationIds: associationIds,
   };
 

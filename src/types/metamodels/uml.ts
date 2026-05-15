@@ -24,6 +24,7 @@ export type UMLPackagedElement = UMLClass | UMLAssociation | UMLAssociationClass
 export interface UMLClass extends UMLBaseElement {
   readonly type: 'uml:Class';
   attributes: readonly UMLAttribute[];
+  operations: readonly UMLOperation[];
   associationIds: readonly string[];
   readonly isAbstract?: boolean;
 }
@@ -42,6 +43,7 @@ export interface UMLAssociation extends UMLBaseElement {
 export interface UMLAssociationClass extends UMLBaseElement {
   readonly type: 'uml:AssociationClass';
   attributes: readonly UMLAttribute[];
+  operations: readonly UMLOperation[];
   associationIds: readonly string[];
   ends: readonly UMLAssociationEnd[];
 }
@@ -52,6 +54,13 @@ export interface UMLAssociationClass extends UMLBaseElement {
  */
 export interface UMLAttribute extends UMLBaseElement {
   readonly type: string;
+}
+
+/**
+ * Represents a simple operation within a UML Class
+ */
+export interface UMLOperation extends UMLBaseElement {
+  readonly visibility: 'public' | 'private' | 'protected';
 }
 
 /**

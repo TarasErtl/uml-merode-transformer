@@ -5,6 +5,7 @@ import {
   type UMLAssociationClass,
   type UMLAttribute, 
   type UMLAssociationEnd, 
+  type UMLOperation,
   UMLLowerBound, 
   UMLUpperBound,
   type UMLPackagedElement
@@ -17,6 +18,7 @@ import {
   type XmiJsonAssociationClass,
   type XmiJsonOwnedAttribute,
   type XmiJsonGeneralization,
+  type XmiJSONOwnedOperation,
   type XmiJsonBaseElement
 } from '../types/metamodels/xmiJson';
 
@@ -209,11 +211,20 @@ const processClasses = (
           };
         }) as UMLAttribute[];
 
+      // Process operations
+      const allOperations = ensureArray<XmiJSONOwnedOperation>(umlClass.ownedOperation);
+      const operations: UMLOperation[] = allOperations.map(op => ({
+        id: op["xmi:id"],
+        name: op.name ?? "",
+        visibility: op.visibility || 'public'
+      }));
+
       classes.push({
         id: el["xmi:id"],
         type: "uml:Class",
         name: el.name ?? "",
         attributes: dataAttributes,
+        operations: operations,
         associationIds: Array.from(classAssocMap[el["xmi:id"]] || []).filter(Boolean),
         isAbstract: umlClass.isAbstract === "true" || umlClass.isAbstract === true
       });
@@ -325,7 +336,15 @@ const processAssociationClasses = (
           };
         }) as UMLAttribute[];
 
-      // 2. Process Ends
+      // 2. Process Operations
+      const allOperations = ensureArray<XmiJSONOwnedOperation>((umlAssocClass as any).ownedOperation);
+      const operations: UMLOperation[] = allOperations.map(op => ({
+        id: op["xmi:id"],
+        name: op.name ?? "",
+        visibility: op.visibility || 'public'
+      }));
+
+      // 3. Process Ends
       let memberEndIds: string[] = [];
       if (typeof umlAssocClass.memberEnd === "string") {
         memberEndIds = umlAssocClass.memberEnd.split(/\s+/);
@@ -377,6 +396,7 @@ const processAssociationClasses = (
         type: "uml:AssociationClass",
         name: umlAssocClass.name ?? "",
         attributes: dataAttributes,
+        operations: operations,
         associationIds: [], 
         ends
       });

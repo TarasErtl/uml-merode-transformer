@@ -20,6 +20,16 @@ const InvisibleHandles = () => {
 };
 
 /**
+ * Helper function to map visibility strings to UML symbols
+ */
+const getVisibilitySymbol = (visibility?: string) => {
+  if (visibility === 'public') return '+ ';
+  if (visibility === 'private') return '- ';
+  if (visibility === 'protected') return '# ';
+  return ''; // Default to no symbol instead of '#' if undefined
+};
+
+/**
  * Custom Node component for representing UML Classes.
  * Displays the class name in a header and lists attributes with visibility markers.
  */
@@ -58,7 +68,7 @@ export const ClassNode = ({ data }: any) => {
         {data.attributes && data.attributes.length > 0 ? (
           data.attributes.map((attr: any) => (
             <div key={attr.id} style={{ marginBottom: '4px' }}>
-              {attr.visibility === 'public' ? '+' : attr.visibility === 'private' ? '-' : '#'} {attr.name}: {attr.type}
+              {getVisibilitySymbol(attr.visibility)}{attr.name}: {attr.type}
             </div>
           ))
         ) : (
@@ -66,6 +76,16 @@ export const ClassNode = ({ data }: any) => {
         )}
       </div>
       
+      {data.operations && data.operations.length > 0 && (
+        <div style={{ padding: '12px', borderTop: '1px solid #555' }}>
+          {data.operations.map((op: any) => (
+            <div key={op.id} style={{ marginBottom: '4px' }}>
+              {getVisibilitySymbol(op.visibility)}{op.name}()
+            </div>
+          ))}
+        </div>
+      )}
+
       <InvisibleHandles />
       <InvisibleHandles />
     </div>

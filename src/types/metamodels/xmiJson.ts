@@ -13,6 +13,7 @@ export interface XmiJsonModel extends XmiJsonBaseElement {
 export interface XmiJsonClass extends XmiJsonBaseElement {
   'xmi:type': 'uml:Class';
   ownedAttribute?: XmiJsonOwnedAttribute | XmiJsonOwnedAttribute[];
+  ownedOperation?: XmiJSONOwnedOperation | XmiJSONOwnedOperation[];
   generalization?: XmiJsonGeneralization | XmiJsonGeneralization[];
   isAbstract?: string | boolean;
 }
@@ -46,6 +47,13 @@ export interface XmiJsonOwnedAttribute extends XmiJsonBaseElement {
   lowerValue?: XmiJsonMultiplicityValue;
   upperValue?: XmiJsonMultiplicityValue;
   _parentClassId?: string; // Internal property to link back to the parent class ID for association mapping
+}
+
+/**
+ * Represents an owned operation of a class in the parsed XMI JSON.
+ */
+export interface XmiJSONOwnedOperation extends XmiJsonBaseElement {
+  visibility?: 'public' | 'private' | 'protected';
 }
 
 /**
