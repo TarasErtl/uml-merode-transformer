@@ -14,8 +14,8 @@ import {
   type MerodeModelElement,
   MerodeMultiplicity,
 } from '../types/metamodels/merode';
-import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAryAssociationProposal } from '../types/proposals';
-import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision} from '../types/decisions';
+import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAryAssociationProposal, EventsProposal, BusinessEventItem } from '../types/proposals';
+import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision, EventsDecision} from '../types/decisions';
 import { createIntermediateClass, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeBuilder';
 import { checkAggregationAssociation, checkExistenceDependency, getRegularAssociationEnds, type AnalyzerReturn } from './umlAnalyzer';
 
@@ -220,10 +220,40 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
   const umlAssociationClasses = umlPackagedElements.filter(el => el.type === 'uml:AssociationClass') as UMLAssociationClass[];
   const umlAssociations = umlPackagedElements.filter(el => el.type === 'uml:Association') as UMLAssociation[];
 
+  const eventsDecision = decisions.get('global-events-proposal') as EventsDecision | undefined;
+  const allEvents: BusinessEventItem[] = [];
+
   //Mapping of the Classes
   umlClasses.forEach(el => {
-        createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], el.operations as MerodeOperation[], el.associationIds as string[]);
+    let filteredOperations = el.operations as MerodeOperation[];
+    
+    if (eventsDecision && eventsDecision.events) {
+      const businessEventIds = new Set(eventsDecision.events.filter(e => e.isBusinessEvent).map(e => e.operationId));
+      filteredOperations = filteredOperations.filter(op => businessEventIds.has(op.id));
+    } else {
+      el.operations.forEach(op => {
+        allEvents.push({
+          operationId: op.id,
+          operationName: op.name,
+          classId: el.id,
+          className: el.name,
+          isBusinessEvent: true // Marked as included by default
+        });
+      });
+    }
+
+    createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], filteredOperations, el.associationIds as string[]);
   });
+
+  if (!eventsDecision && allEvents.length > 0) {
+    const globalEventsProposal: EventsProposal = {
+      id: 'global-events-proposal',
+      type: 'eventsProposal',
+      events: allEvents,
+      message: 'Please select which events (operations) should remain as business events in the Merode model.'
+    };
+    newProposals.set(globalEventsProposal.id, globalEventsProposal);
+  }
 
   //Mapping of the Associations, depending on their type (unary, binary, n-ary)
   umlAssociations.forEach(el => {

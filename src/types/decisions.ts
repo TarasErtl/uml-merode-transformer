@@ -1,3 +1,5 @@
+import { type BusinessEventItem } from "./proposals";
+
 /**
  * Base decision interface.
  */
@@ -33,4 +35,11 @@ export interface BinaryAssociationDecision extends Decision {
 export interface NAryAssociationDecision extends Decision {
   chosenClassName: string;
   chosenRoleNames: string[];
+}
+
+/**
+ * Decision for filtering business events.
+ */
+export interface EventsDecision extends Decision {
+  events: BusinessEventItem[];
 }

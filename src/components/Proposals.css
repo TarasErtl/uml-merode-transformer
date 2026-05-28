@@ -199,17 +199,84 @@
   box-shadow: 0 0 10px rgba(129, 140, 248, 0.2);
 }
 
-/* Scrollbar styling for a cleaner look */
-.proposal-panel-list::-webkit-scrollbar {
+/* EventsProposalCard specific styles */
+.events-list-container {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Unified Scrollbar styling */
+.proposal-panel-list::-webkit-scrollbar,
+.events-list-container::-webkit-scrollbar {
   width: 6px;
 }
-.proposal-panel-list::-webkit-scrollbar-track {
+
+.proposal-panel-list::-webkit-scrollbar-track,
+.events-list-container::-webkit-scrollbar-track {
   background: transparent;
 }
-.proposal-panel-list::-webkit-scrollbar-thumb {
+
+.proposal-panel-list::-webkit-scrollbar-thumb,
+.events-list-container::-webkit-scrollbar-thumb {
   background: #3f3f46;
   border-radius: 4px;
 }
-.proposal-panel-list::-webkit-scrollbar-thumb:hover {
+
+.proposal-panel-list::-webkit-scrollbar-thumb:hover,
+.events-list-container::-webkit-scrollbar-thumb:hover {
   background: #52525b;
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.event-checkbox,
+.proposal-card-checkbox-label,
+.proposal-card-checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+}
+.event-status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-left: 0.75rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.event-status-indicator.accepted {
+  background-color: #4caf50;
+}
+
+.event-status-indicator.rejected {
+  background-color: #f44336;
+}
+
+.event-label {
+  margin-left: 0.25rem;
+  margin-bottom: 0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.event-class-name {
+  margin-right: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #666666;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.event-operation-name {
+  color: #aaaaaa;
+  font-size: 1rem;
 }

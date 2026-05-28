@@ -61,7 +61,7 @@ function App() {
     logger.log("JSON parsed from the uploaded XMI file:", rawData);
 
     if (rawData && rawData["uml:Model"]) {
-      const name = rawData["uml:Model"].name || "Unbenanntes Modell";
+      const name = rawData["uml:Model"].name || "Untitled Model";
       setModelName(name);
       logger.log("These are the elements:", rawData["uml:Model"].packagedElement);
       
@@ -72,7 +72,7 @@ function App() {
       setDecisions(new Map()); // Reset decisions when a new file is loaded
 
       if (mappedIR === null) {
-        const errorMessage = "Fehler bei der Verarbeitung der XMI-Daten. Bitte überprüfen Sie die Struktur der Datei.";
+        const errorMessage = "Error processing XMI data. Please check the file structure.";
         setError(errorMessage);
         logger.error(errorMessage);
       }  
@@ -200,7 +200,7 @@ function App() {
           )}
           {(!umlIR) && (
             <div className="app-no-model">
-              <p>Kein Modell geladen. Bitte wählen Sie eine XMI-Datei aus.</p>
+              <p>No model loaded. Please select an XMI file.</p>
             </div>
           )}
         </main>
@@ -215,7 +215,7 @@ function App() {
                     <button 
                       onClick={() => setViewMode('uml')} 
                       className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'uml' ? 'active' : 'inactive'}`}
-                      title="UML Diagramm anzeigen"
+                      title="Show UML Diagram"
                     >
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -225,7 +225,7 @@ function App() {
                     <button 
                       onClick={() => setViewMode('split')} 
                       className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'split' ? 'active' : 'inactive'}`}
-                      title="Split View anzeigen"
+                      title="Show Split View"
                     >
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -235,7 +235,7 @@ function App() {
                     <button 
                       onClick={() => setViewMode('merode')} 
                       className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'merode' ? 'active' : 'inactive'}`}
-                      title="MERODE Diagramm anzeigen"
+                      title="Show MERODE Diagram"
                     >
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -245,7 +245,7 @@ function App() {
                     <button 
                       onClick={() => setLayoutResetCount(prev => prev + 1)} 
                       className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
-                      title="Diagramm-Layout neu anordnen"
+                      title="Rearrange Diagram Layout"
                     >
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <rect x="8" y="3" width="8" height="6" rx="1"></rect>
@@ -271,7 +271,7 @@ function App() {
               <button 
                 onClick={() => setShowProposals(!showProposals)} 
                 className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
-                title={showProposals ? "Proposals ausblenden" : "Proposals einblenden"}
+                title={showProposals ? "Hide Proposals" : "Show Proposals"}
               >
                 {showProposals ? (
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>

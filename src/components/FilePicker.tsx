@@ -16,7 +16,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFileLoaded, onFileError }) =>
     }
 
     if (!file.name.endsWith('.xmi')) {
-      onFileError('Bitte wählen Sie eine .xmi-Datei aus.');
+      onFileError('Please select a .xmi file.');
       return;
     }
 
@@ -28,7 +28,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFileLoaded, onFileError }) =>
       }
     };
     reader.onerror = () => {
-      onFileError('Fehler beim Lesen der Datei.');
+      onFileError('Error reading file.');
     };
     reader.readAsText(file);
   };
@@ -41,7 +41,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFileLoaded, onFileError }) =>
     }
 
     if (!file.name.endsWith('.xmi')) {
-      onFileError('Bitte laden Sie eine .xmi-Datei hoch.');
+      onFileError('Please upload a .xmi file.');
       return;
     }
 
@@ -53,7 +53,7 @@ const FilePicker: React.FC<FilePickerProps> = ({ onFileLoaded, onFileError }) =>
       }
     };
     reader.onerror = () => {
-      onFileError('Fehler beim Lesen der Datei.');
+      onFileError('Error reading file.');
     };
     reader.readAsText(file);
   };

@@ -7,6 +7,17 @@ export interface Proposal {
 }
 
 /**
+ * Item representing a potential business event.
+ */
+export interface BusinessEventItem {
+  operationId: string;
+  operationName: string;
+  classId: string;
+  className: string;
+  isBusinessEvent: boolean;
+}
+
+/**
  * Proposal for a unary association.
  */
 export interface UnaryAssociationProposal extends Proposal {
@@ -38,4 +49,12 @@ export interface BinaryAssociationProposal extends Proposal {
 export interface NAryAssociationProposal extends Proposal {
     proposedClassName: string;
     proposedRoleNames: string[];
+}
+
+/**
+ * Proposal for filtering business events.
+ */
+export interface EventsProposal extends Proposal {
+  type: 'eventsProposal';
+  events: BusinessEventItem[];
 }
