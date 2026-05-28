@@ -29,9 +29,9 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   
   dagreGraph.setGraph({ 
     rankdir: direction, 
-    nodesep: 150,
-    ranksep: 150,
-    edgesep: 30,
+    nodesep: 70,
+    ranksep: 70,
+    edgesep: 300,
     ranker: 'network-simplex', 
   });
 
@@ -40,18 +40,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   });
 
   edges.forEach((edge) => {
-    // Ontologische Hinweise an Dagre übergeben:
-    if (edge.source === edge.target) {
-      // Unäre Assoziationen (Self-Loops) sollen die Hierarchie-Berechnung nicht beeinflussen
-      dagreGraph.setEdge(edge.source, edge.target, { weight: 0, minlen: 0 });
-    } else {
-      // Generalisierungen implizieren eine starke "is-a"-Struktur.
-      // Ein höheres Gewicht sorgt dafür, dass Dagre sie in einer direkten vertikalen Linie ausrichtet.
-      const isGeneralization = edge.data?.isGeneralization;
-      const weight = isGeneralization ? 5 : 1;
-      
-      dagreGraph.setEdge(edge.source, edge.target, { weight, minlen: 1 });
-    }
+    dagreGraph.setEdge(edge.source, edge.target, { weight: 1 });
   });
 
   dagre.layout(dagreGraph);

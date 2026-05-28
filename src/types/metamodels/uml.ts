@@ -1,12 +1,13 @@
 /**
- * the root interface for the UML Model
+ * top container of the Model
  */
 export interface UMLIR {
   readonly model: UMLModel;
 }
 
 /**
- * the root UML Model element in the XMI file. Contains all the classes and associations
+ * root UML Element
+ * contains all Classes, Associations and AssociationClasses
  */
 export interface UMLModel extends UMLBaseElement {
   readonly type: 'uml:Model';
@@ -14,12 +15,12 @@ export interface UMLModel extends UMLBaseElement {
 }
 
 /**
- * A union type for Classes and Associations
+ * Union Type for Classes, Associations and AssociationClasses
  */
 export type UMLPackagedElement = UMLClass | UMLAssociation | UMLAssociationClass; 
 
 /**
- * Represents a UML Class, with its attributes and associations
+ * UML Class
  */
 export interface UMLClass extends UMLBaseElement {
   readonly type: 'uml:Class';
@@ -30,7 +31,7 @@ export interface UMLClass extends UMLBaseElement {
 }
 
 /**
- * Represents a UML Association, containing the two ends
+ * UML Association
  */
 export interface UMLAssociation extends UMLBaseElement {
   readonly type: 'uml:Association';
@@ -38,7 +39,7 @@ export interface UMLAssociation extends UMLBaseElement {
 }
 
 /**
- * Represents a UML Association Class, which is both a Class and an Association.
+ * UML AssociationClass
  */
 export interface UMLAssociationClass extends UMLBaseElement {
   readonly type: 'uml:AssociationClass';
@@ -49,27 +50,26 @@ export interface UMLAssociationClass extends UMLBaseElement {
 }
 
 /**
- * Represents a simple attribute within a UML Class.
- * its visibiliy, and the type of the value of the attribute
+ * UML Attribute
  */
 export interface UMLAttribute extends UMLBaseElement {
   readonly type: string;
 }
 
 /**
- * Represents a simple operation within a UML Class
+ * UML Operation
  */
 export interface UMLOperation extends UMLBaseElement {
   readonly visibility: 'public' | 'private' | 'protected';
 }
 
 /**
- * Possible types of association ends
+ * AssiciationEnd types
  */
 export type UMLEndType = 'none' | 'shared' | 'composite' | 'generalization';
 
 /**
- * Base interface for common properties of any association end
+ * AssociationEnd basic properties
  */
 export interface UMLAssociationEndBase {
   readonly targetClassId: string;
@@ -78,7 +78,7 @@ export interface UMLAssociationEndBase {
 }
 
 /**
- * Represents a normal association end
+ * Regular AssociationEnd
  */
 export interface UMLNormalAssociationEnd extends UMLAssociationEndBase {
   readonly endType: 'none';
@@ -87,7 +87,7 @@ export interface UMLNormalAssociationEnd extends UMLAssociationEndBase {
 }
 
 /**
- * Represents an aggregation end
+ * Aggregation AssociationEnd
  */
 export interface UMLAggregationEnd extends UMLAssociationEndBase {
   readonly endType: 'shared';
@@ -96,7 +96,7 @@ export interface UMLAggregationEnd extends UMLAssociationEndBase {
 }
 
 /**
- * Represents a composition end
+ * Composition AssociationEnd
  */
 export interface UMLCompositionEnd extends UMLAssociationEndBase {
   readonly endType: 'composite';
@@ -105,7 +105,7 @@ export interface UMLCompositionEnd extends UMLAssociationEndBase {
 }
 
 /**
- * Represents a generalization end (inheritance)
+ * Generalisation AssociationEnd
  */
 export interface UMLGeneralizationEnd extends UMLAssociationEndBase {
   readonly endType: 'generalization';
@@ -113,17 +113,17 @@ export interface UMLGeneralizationEnd extends UMLAssociationEndBase {
 }
 
 /**
- * Describes one end of a UML Relationship.
+ * Union Type for AssociationEnds
  */
 export type UMLAssociationEnd = UMLNormalAssociationEnd | UMLAggregationEnd | UMLCompositionEnd | UMLGeneralizationEnd;
 
 /**
- * A type representing a non-generalization end of an association.
+ * Union Type for AssociationEnds without generalization
  */
 export type UMLRegularAssociationEnd = Exclude<UMLAssociationEnd, UMLGeneralizationEnd>;
 
 /**
- * Represents a generic element,,every element should have and id and a name
+ * Generic Base UML Element interface
  */
 export interface UMLBaseElement {
   readonly id: string;
@@ -131,7 +131,7 @@ export interface UMLBaseElement {
 }
 
 /**
- * Values for the lower bound of a UML multiplicity.
+ * UML Multiplicity: lowerBound
  */
 export const UMLLowerBound = {
   Zero: "0",
@@ -140,7 +140,7 @@ export const UMLLowerBound = {
 export type UMLLowerBound = (typeof UMLLowerBound)[keyof typeof UMLLowerBound];
 
 /**
- * Values for the upper bound of a UML multiplicity.
+ * UML Multiplicity: upperBound
  */
 export const UMLUpperBound = {
   One: "1",

@@ -1,4 +1,4 @@
-import { type BinaryAssociationProposal} from '../types/proposals';
+import { type BinaryAssociationProposal} from '../../types/proposals';
 
 interface BinaryAssociationProposalCardProps {
   proposal: BinaryAssociationProposal;
@@ -73,8 +73,8 @@ const ExistenceDependentView = ({ proposal, onSwapMasterDependent }: { proposal:
 const NoExistenceDependencyView = ({ proposal, onProposalChange }: { proposal: BinaryAssociationProposal, onProposalChange: (id: string, key: string, value: string) => void }) => {
   const fields = [
     { key: 'proposedClassName', label: 'Name of the link class:' },
-    { key: 'proposedRole1Name', label: `Role to '${proposal.class1Name}':` },
-    { key: 'proposedRole2Name', label: `Role to '${proposal.class2Name}':` },
+    { key: 'proposedRole1Name', label: `Role to '${proposal.proposedMasterClassName}':` },
+    { key: 'proposedRole2Name', label: `Role to '${proposal.proposedDependentClassName}':` },
   ];
   return (
     <div className="proposal-card-section">

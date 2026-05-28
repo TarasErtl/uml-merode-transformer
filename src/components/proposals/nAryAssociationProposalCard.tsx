@@ -1,4 +1,4 @@
-import { type NAryAssociationProposal } from '../types/proposals';
+import { type NAryAssociationProposal } from '../../types/proposals';
 
 interface NAryAssociationProposalCardProps {
   proposal: NAryAssociationProposal;

@@ -1,4 +1,4 @@
-import { type UnaryAssociationProposal } from '../types/proposals';
+import { type UnaryAssociationProposal } from '../../types/proposals';
 
 interface UnaryAssociationProposalCardProps {
   proposal: UnaryAssociationProposal;

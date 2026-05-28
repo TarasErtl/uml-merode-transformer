@@ -1,7 +1,6 @@
 import { 
   type UMLAssociation, 
-  type UMLAssociationEnd, 
-  type UMLGeneralizationEnd,
+  type UMLRegularAssociationEnd,
   UMLLowerBound, 
   UMLUpperBound,
   type UMLAssociationClass,
@@ -18,7 +17,7 @@ import {
 /**
  * Helper function that replaces an existing association, by creating an intermediate class and connecting it to the original classes.
  * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
- * @param umlAssoc the UML association that should be replaced
+ * @param umlAssoc the UML Association or AssociationClass that should be replaced
  * @param className the name of the new class that should be created to represent the binary association
  * @param assocNames the role names of the new associations
  * @return the id of the new class that has been created to represent the binary association
@@ -26,12 +25,12 @@ import {
 export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation | UMLAssociationClass, className: string, assocNames: string[]) => {
   // Extract the ends of the association that should be replaced. 
   // Assert that Generalization ends are already filtered out before calling this function.
-  const ends = umlAssoc.ends as Exclude<UMLAssociationEnd, UMLGeneralizationEnd>[];
+  const ends = umlAssoc.ends as UMLRegularAssociationEnd[];
 
   const classId: string = `${umlAssoc.id}_Class`;
   const assocIds: string[] = ends.map((_, index) => `${umlAssoc.id}_assoc${index + 1}`);
 
-  // Extract attributes and associations if the element is an association class
+  // extract Data if type = AssociationClass
   const attributes = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.attributes as MerodeAttribute[]) : [];
   const operations = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.operations as MerodeOperation[]) : [];
   const existingAssocIds = umlAssoc.type === 'uml:AssociationClass' ? (umlAssoc.associationIds as string[]) : [];

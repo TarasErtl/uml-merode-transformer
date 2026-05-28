@@ -1,12 +1,13 @@
 /**
- * the root interface for the Merode Model
+ * Top container of the Merode model.
  */
 export interface MerodeIR {
   readonly model: MerodeModel;
 }
 
 /**
- * the root Merode Model element, named "Model", containing all the other elements (classes and associations)
+ * Root Merode element.
+ * Contains all elements (classes and associations).
  */
 export interface MerodeModel extends MerodeBaseElement {
   readonly type: 'merode:Model';
@@ -14,7 +15,8 @@ export interface MerodeModel extends MerodeBaseElement {
 }
 
 /**
- * Represents a generic element in an Merode Model, every element should have and id and a name
+ * Generic base Merode element interface.
+ * Every element should have an ID and an optional name.
  */
 export interface MerodeBaseElement {
   readonly id: string;
@@ -22,12 +24,12 @@ export interface MerodeBaseElement {
 }
 
 /**
- * A union type for Classes and Associations
+ * Union type for classes and associations.
  */
 export type MerodeModelElement = MerodeClass | MerodeAssociation
 
 /**
- * Represents a Merode Class, with its attributes and associationIds
+ * Merode class.
  */
 export interface MerodeClass extends MerodeBaseElement {
   readonly type: 'merode:Class';
@@ -37,14 +39,14 @@ export interface MerodeClass extends MerodeBaseElement {
 }
 
 /**
- * Represents a Merode attribute
+ * Merode attribute.
  */
 export interface MerodeAttribute extends MerodeBaseElement {
   readonly type: 'merode:Attribute';
 }
 
 /**
- * Represents a Merode operation
+ * Merode operation.
  */
 export interface MerodeOperation extends MerodeBaseElement {
   readonly type?: 'merode:Operation';
@@ -52,8 +54,8 @@ export interface MerodeOperation extends MerodeBaseElement {
 }
 
 /**
- * Represents a Merode Association, containing master and dependent class
- * the role name, and the multiplicity of the dependent class.
+ * Merode association.
+ * Contains master and dependent class, role name, and multiplicity.
  * Optionally includes flags to mark if the association represents a generalization.
  */
 export interface MerodeAssociation extends MerodeBaseElement {
@@ -67,7 +69,7 @@ export interface MerodeAssociation extends MerodeBaseElement {
 }
 
 /**
- * Values for the multiplicity of a Merode dependend class.
+ * Multiplicity values for a Merode dependent class.
  */
 export const MerodeMultiplicity = {
   ZeroToMany: "0..*",

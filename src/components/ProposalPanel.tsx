@@ -1,8 +1,8 @@
 import { type Proposal } from '../types/proposals';
 import { isBinaryAssociationProposal, isNAryAssociationProposal, isUnaryAssociationProposal } from '../utils/proposalTypeGuards';
-import UnaryAssociationProposalCard from './UnaryAssociationProposalCard';
-import BinaryAssociationProposalCard from './BinaryAssociationProposalCard';
-import NAryAssociationProposalCard from './NAryAssociationProposalCard';
+import UnaryAssociationProposalCard from './proposals/unaryAssociationProposalCard';
+import BinaryAssociationProposalCard from './proposals/binaryAssociationProposalCard';
+import NAryAssociationProposalCard from './proposals/nAryAssociationProposalCard';
 import './Proposals.css';
 
 interface ProposalPanelProps {

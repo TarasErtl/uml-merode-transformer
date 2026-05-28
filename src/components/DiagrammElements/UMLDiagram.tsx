@@ -28,7 +28,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => 
   dagreGraph.setGraph({ 
     rankdir: direction, 
     nodesep: 100,
-    ranksep: 50,
+    ranksep: 70,
     edgesep: 300,
     ranker: 'network-simplex',
   });

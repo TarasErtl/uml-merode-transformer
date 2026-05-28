@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import FilePicker from './components/FilePicker';
+import FilePicker from './components/filePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
-import ProposalPanel from './components/ProposalPanel';
+import ProposalPanel from './components/proposalPanel';
 import { mapXmiToIR } from './mappers/jsonToUml'; // Corrected import path
 import { mapUmlToMerode } from './mappers/umlToMerode';
-import UMLDiagram from "./components/DiagrammElements/UMLDiagram";
-import MERODEDiagram from "./components/DiagrammElements/MerodeDiagram";
+import UMLDiagram from "./components/diagrammElements/UMLDiagram";
+import MERODEDiagram from "./components/diagrammElements/MerodeDiagram";
 import { type XmiJsonData } from './types/metamodels/xmiJson';
 import { type UMLIR } from './types/metamodels/uml';
 import { type MerodeIR } from "./types/metamodels/merode";
@@ -20,7 +20,7 @@ import {
 import { convertProposalToDecision } from "./utils/decisionConverter";
 import './App.css'; // Add CSS import
 import { ReactFlowProvider } from '@xyflow/react';
-import { exportToMxp } from './exportService';
+import { exportToMxp } from './utils/exportService';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -115,32 +115,6 @@ function App() {
       prevProposals.map(p => {
         if (p.id === proposalId) {
           const updated = { ...p, [key]: value } as any;
-          if (key === 'proposedExistenceDependency') {
-            if (value === true) {
-              if (!updated.proposedMasterClassName && updated.class1Name) {
-                updated.proposedMasterClassName = updated.class1Name;
-              }
-              if (!updated.proposedDependentClassName && updated.class2Name) {
-                updated.proposedDependentClassName = updated.class2Name;
-              }
-              // Fehlende IDs aus dem ursprünglichen UML-Graphen laden, damit der Swap-Button funktioniert
-              // Load missing IDs from the original UML graph so the swap button functions correctly
-              if (!updated.proposedMasterClassId || !updated.proposedDependentClassId) {
-                const assoc = umlIR?.model.packagedElement.find(e => e.id === proposalId) as any;
-                if (assoc && assoc.ends && assoc.ends.length >= 2) {
-                  updated.proposedMasterClassId = assoc.ends[0].targetClassId;
-                  updated.proposedDependentClassId = assoc.ends[1].targetClassId;
-                }
-              }
-            } else {
-              if (!updated.class1Name && updated.proposedMasterClassName) {
-                updated.class1Name = updated.proposedMasterClassName;
-              }
-              if (!updated.class2Name && updated.proposedDependentClassName) {
-                updated.class2Name = updated.proposedDependentClassName;
-              }
-            }
-          }
           return updated as Proposal;
         }
         return p;
