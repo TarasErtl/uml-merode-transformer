@@ -18,6 +18,7 @@ import type { Proposal, UnaryAssociationProposal, BinaryAssociationProposal, NAr
 import type { Decision, UnaryAssociationDecision, BinaryAssociationDecision, NAryAssociationDecision, EventsDecision} from '../types/decisions';
 import { createIntermediateClass, createMerodeAssociation, createMerodeClass, mapToMerodeMultiplicity } from './merodeBuilder';
 import { checkAggregationAssociation, checkExistenceDependency, getRegularAssociationEnds, type AnalyzerReturn } from './umlAnalyzer';
+import { aiService } from '../utils/aiService';
 
 /**
  * Maps an Unary UML Association to Merode, by:
@@ -27,17 +28,22 @@ import { checkAggregationAssociation, checkExistenceDependency, getRegularAssoci
  * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
  * @param umlAssoc the UML association that should be mapped
  * @param decisions the Map of the decisions, to check if there is already a decision for the unary association
+ * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): UnaryAssociationProposal | null=> {
+const mapUnaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<UnaryAssociationProposal | null> => {
   const [end1, end2]  = getRegularAssociationEnds(umlAssoc);
   const decision = decisions.get(umlAssoc.id) as UnaryAssociationDecision | undefined;
 
   // Determine names based on the decision or use fallback default values
-  //TODO hier AI suggestion einbauen
-  const className = decision?.chosenClassName || '';
+  let className = decision?.chosenClassName || '';
   const assocName1 = decision?.chosenRole1Name || end1.roleName || '';
   const assocName2 = decision?.chosenRole2Name || end2.roleName || '';
+
+  if (!decision && !className && useAi) {
+    const targetName = merodeIR.get(end1.targetClassId)?.name || 'Entity';
+    className = await aiService.generateIntermediateClassName([targetName, targetName], [assocName1, assocName2]);
+  }
 
   // Create the intermediate Class and the connection Associations in the Merode-IR
   createIntermediateClass(merodeIR, umlAssoc, className, [assocName1, assocName2]);
@@ -64,9 +70,10 @@ const mapUnaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc:
  * @param merodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
  * @param umlAssoc the UML association that should be mapped
  * @param decisions the Map of the decisions, to check if there is already a decision for the unary association
+ * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): BinaryAssociationProposal | null=> {
+const mapBinaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<BinaryAssociationProposal | null> => {
   const associationEnds = getRegularAssociationEnds(umlAssoc);
   const [end1, end2]  = associationEnds;
   const decision = decisions.get(umlAssoc.id) as BinaryAssociationDecision | undefined;
@@ -117,6 +124,13 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
     // Case 2: Non-existence dependency is assumed or decided. Create an intermediate class.
     const role1 = decision?.chosenRole1Name ?? end1.roleName ?? '';
     const role2 = decision?.chosenRole2Name ?? end2.roleName ?? '';
+
+    if (!decision && !className && useAi) {
+      const name1 = merodeIR.get(masterClassId)?.name || '';
+      const name2 = merodeIR.get(dependentClassId)?.name || '';
+      className = await aiService.generateIntermediateClassName([name1, name2], [role1, role2]);
+    }
+
     createIntermediateClass(merodeIR, umlAssoc, className, [role1, role2]);
   }
 
@@ -151,14 +165,20 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
  * @param MerodeIR the Map of the MerodeModelElements, to which the new class and associations should be added
  * @param umlAssoc the UML association that should be mapped
  * @param decisions the Map of the decisions, to check if there is already a decision
+ * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapNaryAssociation = (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>): NAryAssociationProposal | null => {
+const mapNaryAssociation = async (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<NAryAssociationProposal | null> => {
     const ends = getRegularAssociationEnds(umlAssoc);
     const decision = decisions.get(umlAssoc.id) as NAryAssociationDecision | undefined;
     
-    const className = decision?.chosenClassName || '';
+    let className = decision?.chosenClassName || '';
     const roleNames = decision?.chosenRoleNames ?? ends.map(end => end.roleName ?? '');
+
+    if (!decision && !className && useAi) {
+      const names = ends.map(end => MerodeIR.get(end.targetClassId)?.name || '');
+      className = await aiService.generateIntermediateClassName(names, roleNames);
+    }
 
     // Map the n-ary association by creating a central intermediate class and associations to the original classes
     createIntermediateClass(MerodeIR, umlAssoc, className, roleNames);
@@ -209,12 +229,17 @@ const mapGeneralisationAssociation = (merodeIR: Map<string, MerodeBaseElement>, 
  *  - if the some further information is needed, a proposal is created, which the user has to handle, to transform it to a decision
  * @param umlIR the UML Model to be mapped
  * @param decisions the Mapping decisions made by the user
+ * @param useAi boolean flag to enable AI name generation
  * @returns the Mapped Merode IR Model, as well as the Proposals to the user
  */
-export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): { merodeIR: MerodeIR | null, proposals: Proposal[] } => {
+export const mapUmlToMerode = async (umlIR: UMLIR, decisions: Map<string, Decision>, useAi: boolean = false): Promise<{ merodeIR: MerodeIR | null, proposals: Proposal[] }> => {
   const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
   const merodeIR: Map<string, MerodeModelElement> = new Map();
   const newProposals: Map<string, Proposal> = new Map();
+
+  if (useAi) {
+    await aiService.initialize();
+  }
 
   const umlClasses = umlPackagedElements.filter(el => el.type === 'uml:Class') as UMLClass[];
   const umlAssociationClasses = umlPackagedElements.filter(el => el.type === 'uml:AssociationClass') as UMLAssociationClass[];
@@ -256,7 +281,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
   }
 
   //Mapping of the Associations, depending on their type (unary, binary, n-ary)
-  umlAssociations.forEach(el => {
+  for (const el of umlAssociations) {
     let proposal: Proposal | null = null;
     const umlAssoc = el as UMLAssociation;
 
@@ -264,7 +289,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
     if (umlAssoc.ends.length === 2) {          
         // Check if it's a Unary Association (both ends point to the same class)
         if (umlAssoc.ends[0].targetClassId === umlAssoc.ends[1].targetClassId) {
-          proposal = mapUnaryAssociation(merodeIR, umlAssoc, decisions);
+          proposal = await mapUnaryAssociation(merodeIR, umlAssoc, decisions, useAi);
         }
         // check if its a generalisation/specialisation
         else if (umlAssoc.ends[0].endType === 'generalization' || umlAssoc.ends[1].endType === 'generalization') {
@@ -273,19 +298,19 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>): 
         }
         // Binary Association (as well as aggregation)
         else {
-          proposal = mapBinaryAssociation(merodeIR, umlAssoc, decisions);
+          proposal = await mapBinaryAssociation(merodeIR, umlAssoc, decisions, useAi);
         }              
     }
     // N-ary Association
     else {
-        proposal = mapNaryAssociation(merodeIR, umlAssoc, decisions);
+        proposal = await mapNaryAssociation(merodeIR, umlAssoc, decisions, useAi);
     }
 
     if (proposal){
       console.log("Generated proposal for association:", proposal);  
       newProposals.set(proposal.id, proposal);
     }
-  });
+  }
 
   //Mapping of the Association Classes
   umlAssociationClasses.forEach(el => {

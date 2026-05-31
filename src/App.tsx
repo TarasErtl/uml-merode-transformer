@@ -21,6 +21,7 @@ import { convertProposalToDecision } from "./utils/decisionConverter";
 import './App.css'; // Add CSS import
 import { ReactFlowProvider } from '@xyflow/react';
 import { exportToMxp } from './utils/exportService';
+import { aiService } from './utils/aiService';
 
 function App() {
   const [modelName, setModelName] = useState<string>("");
@@ -34,11 +35,13 @@ function App() {
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null); // State for cross-diagram hover
   const [hoverSource, setHoverSource] = useState<'proposal' | 'diagram' | null>(null);
   const [layoutResetCount, setLayoutResetCount] = useState<number>(0);
+  const [isAILoading, setIsAILoading] = useState<boolean>(false);
+  const [aiLoadingText, setAiLoadingText] = useState<string>("");
 
   //recreates the function if umlIR or decisions change, which triggers the execution in useEffect
-  const reMapModels = useCallback(() => {
+  const reMapModels = useCallback(async () => {
     if (umlIR) {
-      const { merodeIR: newMerodeIR, proposals: newProposals } = mapUmlToMerode(umlIR, decisions);
+      const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, false);
       setMerodeIR(newMerodeIR);
       setProposals(newProposals);
       console.log("Re-mapped MERODE IR:", newMerodeIR);
@@ -154,6 +157,24 @@ function App() {
     }
   };
 
+  const handleAiModelGeneration = async () => {
+    if (umlIR) {
+      setIsAILoading(true);
+      setAiLoadingText("Initializing AI...");
+      aiService.setProgressCallback((text) => setAiLoadingText(text));
+      try {
+        // Rufe den Mapper erneut auf, aber diesmal mit useAi = true
+        const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, true);
+        setMerodeIR(newMerodeIR);
+        setProposals(newProposals);
+      } catch (err) {
+        console.error("AI Generation failed:", err);
+      } finally {
+        setIsAILoading(false);
+      }
+    }
+  };
+
   return (
     <div className="app-container">
       {!modelName && (
@@ -167,7 +188,33 @@ function App() {
       {modelName && (
         <div className="app-main-layout">
         {/* Main content area */}
-        <main className="app-main-content">
+        <main className="app-main-content" style={{ position: 'relative' }}>
+          {isAILoading && (
+            <div style={{
+              position: 'absolute',
+              top: 0, left: 0, right: 0, bottom: 0,
+              backgroundColor: 'rgba(18, 18, 18, 0.6)',
+              backdropFilter: 'blur(10px)',
+              zIndex: 1000,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#f3f4f6'
+            }}>
+              <div style={{
+                width: '50px', height: '50px',
+                border: '5px solid #3f3f46',
+                borderTop: '5px solid #818cf8',
+                borderRadius: '50%',
+                animation: 'ai-spin 1s linear infinite',
+                marginBottom: '20px'
+              }}></div>
+              <style>{`@keyframes ai-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+              <h3 style={{ margin: '0 0 10px 0' }}>Please wait, AI is generating names... Magic is happening here!</h3>
+              <p style={{ maxWidth: '80%', textAlign: 'center', margin: 0, fontSize: '0.9em', color: '#a1a1aa' }}>{aiLoadingText}</p>
+            </div>
+          )}
           {umlIR && (
             <div className="app-diagram-container" style={{ display: viewMode === 'merode' ? 'none' : undefined }}>
               <div className="app-diagram-wrapper">
@@ -264,6 +311,17 @@ function App() {
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    </button>
+                    <button 
+                      onClick={handleAiModelGeneration} 
+                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${isAILoading ? 'active' : 'inactive'}`}
+                      title="Generate Names with AI"
+                      disabled={isAILoading}
+                    >
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">AI</text>
                       </svg>
                     </button>
                   </>

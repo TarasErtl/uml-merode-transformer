@@ -1,5 +1,5 @@
 import * as Handlebars from 'handlebars';
-import { MerodeIR } from '../types/metamodels/merode';
+import type { MerodeIR } from '../types/metamodels/merode';
 import { mxpTemplateContent } from './mxpTemplate';
 import { mapMerodeToMxpData } from './merodeToMxpMapper';
 import JSZip from 'jszip';

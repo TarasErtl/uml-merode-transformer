@@ -1,4 +1,4 @@
-import { MerodeIR } from '../types/metamodels/merode';
+import type { MerodeIR } from '../types/metamodels/merode';
 
 class MxpIdGenerator {
   private current = 1;
