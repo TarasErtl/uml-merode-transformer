@@ -31,12 +31,13 @@ import { aiService } from '../utils/aiService';
  * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapUnaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<UnaryAssociationProposal | null> => {
+const mapUnaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean, existingProposals: Proposal[]): Promise<UnaryAssociationProposal | null> => {
   const [end1, end2]  = getRegularAssociationEnds(umlAssoc);
   const decision = decisions.get(umlAssoc.id) as UnaryAssociationDecision | undefined;
+  const existingProposal = existingProposals.find(p => p.id === umlAssoc.id) as UnaryAssociationProposal | undefined;
 
   // Determine names based on the decision or use fallback default values
-  let className = decision?.chosenClassName || '';
+  let className = decision?.chosenClassName || existingProposal?.proposedClassName || '';
   const assocName1 = decision?.chosenRole1Name || end1.roleName || '';
   const assocName2 = decision?.chosenRole2Name || end2.roleName || '';
 
@@ -73,10 +74,11 @@ const mapUnaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, uml
  * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapBinaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<BinaryAssociationProposal | null> => {
+const mapBinaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean, existingProposals: Proposal[]): Promise<BinaryAssociationProposal | null> => {
   const associationEnds = getRegularAssociationEnds(umlAssoc);
   const [end1, end2]  = associationEnds;
   const decision = decisions.get(umlAssoc.id) as BinaryAssociationDecision | undefined;
+  const existingProposal = existingProposals.find(p => p.id === umlAssoc.id) as BinaryAssociationProposal | undefined;
 
   let isExistenceDependent = false;
   // Initialize with end1 and end2. If not existence dependent, they store the adjacent classes.
@@ -105,6 +107,10 @@ const mapBinaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, um
         masterClassId = analyzerReturn.masterClassId;
         dependentClassId = analyzerReturn.dependentClassId;
       }
+    }
+    
+    if (existingProposal && existingProposal.proposedClassName) {
+      className = existingProposal.proposedClassName;
     }
   }
 
@@ -168,11 +174,12 @@ const mapBinaryAssociation = async (merodeIR: Map<string, MerodeBaseElement>, um
  * @param useAi boolean flag to generate names using AI
  * @returns a Proposal if there was no decicion, otherwise null
  */
-const mapNaryAssociation = async (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean): Promise<NAryAssociationProposal | null> => {
+const mapNaryAssociation = async (MerodeIR: Map<string, MerodeModelElement>, umlAssoc: UMLAssociation, decisions: Map<string, Decision>, useAi: boolean, existingProposals: Proposal[]): Promise<NAryAssociationProposal | null> => {
     const ends = getRegularAssociationEnds(umlAssoc);
     const decision = decisions.get(umlAssoc.id) as NAryAssociationDecision | undefined;
+    const existingProposal = existingProposals.find(p => p.id === umlAssoc.id) as NAryAssociationProposal | undefined;
     
-    let className = decision?.chosenClassName || '';
+    let className = decision?.chosenClassName || existingProposal?.proposedClassName || '';
     const roleNames = decision?.chosenRoleNames ?? ends.map(end => end.roleName ?? '');
 
     if (!decision && !className && useAi) {
@@ -232,7 +239,7 @@ const mapGeneralisationAssociation = (merodeIR: Map<string, MerodeBaseElement>, 
  * @param useAi boolean flag to enable AI name generation
  * @returns the Mapped Merode IR Model, as well as the Proposals to the user
  */
-export const mapUmlToMerode = async (umlIR: UMLIR, decisions: Map<string, Decision>, useAi: boolean = false): Promise<{ merodeIR: MerodeIR | null, proposals: Proposal[] }> => {
+export const mapUmlToMerode = async (umlIR: UMLIR, decisions: Map<string, Decision>, useAi: boolean = false, existingProposals: Proposal[] = []): Promise<{ merodeIR: MerodeIR | null, proposals: Proposal[] }> => {
   const umlPackagedElements: readonly UMLPackagedElement[] = umlIR.model.packagedElement;
   const merodeIR: Map<string, MerodeModelElement> = new Map();
   const newProposals: Map<string, Proposal> = new Map();
@@ -289,7 +296,7 @@ export const mapUmlToMerode = async (umlIR: UMLIR, decisions: Map<string, Decisi
     if (umlAssoc.ends.length === 2) {          
         // Check if it's a Unary Association (both ends point to the same class)
         if (umlAssoc.ends[0].targetClassId === umlAssoc.ends[1].targetClassId) {
-          proposal = await mapUnaryAssociation(merodeIR, umlAssoc, decisions, useAi);
+          proposal = await mapUnaryAssociation(merodeIR, umlAssoc, decisions, useAi, existingProposals);
         }
         // check if its a generalisation/specialisation
         else if (umlAssoc.ends[0].endType === 'generalization' || umlAssoc.ends[1].endType === 'generalization') {
@@ -298,12 +305,12 @@ export const mapUmlToMerode = async (umlIR: UMLIR, decisions: Map<string, Decisi
         }
         // Binary Association (as well as aggregation)
         else {
-          proposal = await mapBinaryAssociation(merodeIR, umlAssoc, decisions, useAi);
+          proposal = await mapBinaryAssociation(merodeIR, umlAssoc, decisions, useAi, existingProposals);
         }              
     }
     // N-ary Association
     else {
-        proposal = await mapNaryAssociation(merodeIR, umlAssoc, decisions, useAi);
+        proposal = await mapNaryAssociation(merodeIR, umlAssoc, decisions, useAi, existingProposals);
     }
 
     if (proposal){

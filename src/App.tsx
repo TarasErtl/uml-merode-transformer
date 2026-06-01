@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import FilePicker from './components/filePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
@@ -38,12 +38,29 @@ function App() {
   const [isAILoading, setIsAILoading] = useState<boolean>(false);
   const [aiLoadingText, setAiLoadingText] = useState<string>("");
 
-  //recreates the function if umlIR or decisions change, which triggers the execution in useEffect
+  const proposalsRef = useRef<Proposal[]>([]);
+  useEffect(() => {
+    proposalsRef.current = proposals;
+  }, [proposals]);
+
   const reMapModels = useCallback(async () => {
     if (umlIR) {
-      const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, false);
+      const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, false, proposalsRef.current);
       setMerodeIR(newMerodeIR);
-      setProposals(newProposals);
+      
+      // Save and apply ONLY the manually changed or AI-generated class name of the proposals
+      setProposals(prevProposals => {
+        return newProposals.map(newProp => {
+          const existingProp = prevProposals.find(p => p.id === newProp.id);
+          if (existingProp) {
+            return {
+              ...newProp,
+              ...('proposedClassName' in existingProp && { proposedClassName: (existingProp as any).proposedClassName })
+            } as Proposal;
+          }
+          return newProp;
+        });
+      });
       console.log("Re-mapped MERODE IR:", newMerodeIR);
       console.log("Generated Proposals based on current decisions:", newProposals);
       console.log("Current decisions:", Array.from(decisions.entries()));
@@ -146,6 +163,7 @@ function App() {
     const newDecision: Decision | null = convertProposalToDecision(proposal);
 
     if (newDecision) {
+
       setDecisions(prevDecisions => {
         const updatedDecisions = new Map(prevDecisions);
         updatedDecisions.set(newDecision!.id, newDecision!);
@@ -164,7 +182,7 @@ function App() {
       aiService.setProgressCallback((text) => setAiLoadingText(text));
       try {
         // Rufe den Mapper erneut auf, aber diesmal mit useAi = true
-        const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, true);
+        const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, true, proposalsRef.current);
         setMerodeIR(newMerodeIR);
         setProposals(newProposals);
       } catch (err) {
