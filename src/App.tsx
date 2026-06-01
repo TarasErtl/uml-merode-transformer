@@ -231,7 +231,7 @@ function App() {
             </div>
           )}
           {umlIR && merodeIR && (
-            <div className="app-diagram-container" style={{ display: viewMode === 'uml' ? 'none' : undefined }}>
+            <div id="merode-diagram-container" className="app-diagram-container" style={{ display: viewMode === 'uml' ? 'none' : undefined }}>
               <div className="app-diagram-wrapper">
                 <ReactFlowProvider>
                   <MERODEDiagram 

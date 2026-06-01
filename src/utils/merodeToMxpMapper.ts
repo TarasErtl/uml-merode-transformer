@@ -110,11 +110,38 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
       fsm
     });
 
-    // Generate simple grid coordinates for GUI
+    let posX = cls.position?.x ?? cls.x;
+    let posY = cls.position?.y ?? cls.y;
+
+    // Dynamically fetch the current positions directly from the React Flow DOM nodes
+    try {
+      const safeId = CSS.escape(String(cls.id));
+      const safeName = CSS.escape(String(cls.name));
+      
+      let domNode = document.querySelector(`#merode-diagram-container .react-flow__node[data-id="${safeId}"]`) as HTMLElement;
+      if (!domNode) domNode = document.querySelector(`#merode-diagram-container .react-flow__node[data-id="${safeName}"]`) as HTMLElement;
+      
+      if (domNode && domNode.style.transform) {
+        const match = domNode.style.transform.match(/translate(?:3d)?\(([-\d.]+)px,\s*([-\d.]+)px/);
+        if (match) {
+          posX = parseFloat(match[1]);
+          posY = parseFloat(match[2]);
+        }
+      }
+    } catch (e) {
+      // Ignore DOM errors
+    }
+
+    posX = posX ?? ((index % 5) * 150);
+    posY = posY ?? (Math.floor(index / 5) * 100);
+
+    // Apply a scaling factor to make the diagram twice as tight in the MXP tool
+    const scaleFactor = 0.5;
+
     guiobjects.push({
       refid: mxpId,
-      x: (index % 5) * 150,
-      y: Math.floor(index / 5) * 100
+      x: (Number(posX) * scaleFactor).toFixed(2),
+      y: (Number(posY) * scaleFactor).toFixed(2)
     });
   });
 
