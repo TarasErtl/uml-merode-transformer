@@ -232,6 +232,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, e
   const umlAssociations = umlPackagedElements.filter(el => el.type === 'uml:Association') as UMLAssociation[];
 
   const eventsDecision = decisions.get('global-events-proposal') as EventsDecision | undefined;
+  const existingEventsProposal = existingProposals.find(p => p.id === 'global-events-proposal') as EventsProposal | undefined;
   const allEvents: BusinessEventItem[] = [];
 
   //Mapping of the Classes
@@ -242,15 +243,26 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, e
       const businessEventIds = new Set(eventsDecision.events.filter(e => e.isBusinessEvent).map(e => e.operationId));
       filteredOperations = filteredOperations.filter(op => businessEventIds.has(op.id));
     } else {
+      const businessEventIds = new Set<string>();
+      
       el.operations.forEach(op => {
+        // Check if there are user modifications from the existing proposal
+        const existingEvent = existingEventsProposal?.events.find(e => e.operationId === op.id);
+        const isBusinessEvent = existingEvent !== undefined ? existingEvent.isBusinessEvent : true;
+        
+        if (isBusinessEvent) businessEventIds.add(op.id);
+        
         allEvents.push({
           operationId: op.id,
           operationName: op.name,
           classId: el.id,
           className: el.name,
-          isBusinessEvent: true // Marked as included by default
+          isBusinessEvent
         });
       });
+      
+      // Apply the current proposal filter instantly to the diagram
+      filteredOperations = filteredOperations.filter(op => businessEventIds.has(op.id));
     }
 
     createMerodeClass(merodeIR, el.id, el.name, el.attributes as MerodeAttribute[], filteredOperations, el.associationIds as string[]);
@@ -261,7 +273,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, e
       id: 'global-events-proposal',
       type: 'eventsProposal',
       events: allEvents,
-      message: 'Please select which events (operations) should remain as business events in the Merode model.'
+      message: 'Please select which events (operations) should remain as business events in the Merode model, by clicking on them.'
     };
     newProposals.set(globalEventsProposal.id, globalEventsProposal);
   }

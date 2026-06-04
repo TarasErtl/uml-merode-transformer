@@ -193,13 +193,30 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
   const generalizations = associations.filter((a: any) => a.isGeneralization);
   const normalDependencies = associations.filter((a: any) => !a.isGeneralization);
 
-  // Process normal dependencies first, so master classes acquire methods 
-  // which can then be inherited down to subclasses
-  normalDependencies.forEach((assoc: any) => {
-    const master = classMap.get(assoc.masterClassId);
-    const dependent = classMap.get(assoc.dependentClassId);
+  // Process normal dependencies bottom-up (topological sort), so master classes acquire methods
+  // from their dependents (which bubble up the chain), which can then be inherited down to subclasses
+  let depsChanged = true;
+  const processedDeps = new Set<string>();
+  
+  while (depsChanged) {
+    depsChanged = false;
+    for (const assoc of normalDependencies) {
+      if (processedDeps.has(assoc.id)) continue;
 
-    if (!master || !dependent) return;
+      // Wait until the dependent class has no unprocessed OUTGOING normal dependencies
+      // (i.e. the dependent must first acquire events from its own dependents before passing them up)
+      const dependentHasPendingOutgoing = normalDependencies.some(
+        (a: any) => a.masterClassId === assoc.dependentClassId && !processedDeps.has(a.id)
+      );
+
+      if (!dependentHasPendingOutgoing) {
+        processedDeps.add(assoc.id);
+        depsChanged = true;
+
+        const master = classMap.get(assoc.masterClassId);
+        const dependent = classMap.get(assoc.dependentClassId);
+
+        if (!master || !dependent) continue;
 
       const depId = idGen.next();
       const dependencyType = mapMultiplicity(assoc.multiplicity || '0..*');
@@ -254,7 +271,32 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
         methodName: `MEend${dependent.name}`,
         type: 'MODIFY'
       });
-  });
+
+        // Master ALSO acquires all custom business events (and previously acquired events) from the Dependent
+        if (dependent.inheritableMethods) {
+          dependent.inheritableMethods.forEach((udm: any) => {
+            const acqMethodId = idGen.next();
+            metamethods.push({
+              id: acqMethodId, name: udm.methodName, provenance: 'ACQUIRED', type: 'MODIFY',
+              ownerObjectId: master.mxpId, ownerEventId: udm.eventId,
+              viaMethod: udm.methodId, viaDependency: depId
+            });
+            master.acquiredMethods.push({
+              safeId: idGen.next(),
+              methodId: acqMethodId,
+              methodName: udm.methodName
+            });
+            master.inheritableMethods.push({
+              eventId: udm.eventId,
+              methodId: acqMethodId,
+              methodName: udm.methodName,
+              type: 'MODIFY'
+            });
+          });
+        }
+      }
+    }
+  }
 
   // Process generalizations in topological order to support multi-level inheritance
   let changed = true;
