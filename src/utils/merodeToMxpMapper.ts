@@ -41,6 +41,9 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
   const metamethods: any[] = [];
   const guiobjects: any[] = [];
 
+  // Keep track of globally created events by name to avoid duplicates
+  const eventMap = new Map<string, number>();
+
   // 1. Process Classes (Objects, Events, Owned Methods)
   classes.forEach((cls: any, index: number) => {
     const className = sanitizeName(cls.name);
@@ -57,6 +60,9 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
     
     metaevents.push({ id: crEventId, name: `EVcr${className}` });
     metaevents.push({ id: endEventId, name: `EVend${className}` });
+
+    eventMap.set(`EVcr${className}`, crEventId);
+    eventMap.set(`EVend${className}`, endEventId);
 
     const crMethodId = idGen.next();
     const endMethodId = idGen.next();
@@ -77,8 +83,46 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
       endEventId,
       crMethodId,
       endMethodId,
-      acquiredMethods: [] as any[]
+      acquiredMethods: [] as any[],
+      inheritableMethods: [] as any[]
     };
+
+    // Process user-defined operations / events
+    if (cls.operations && Array.isArray(cls.operations)) {
+      cls.operations.forEach((op: any) => {
+        const opName = sanitizeName(op.name);
+        const eventName = `EV${opName}`;
+        let eventId = eventMap.get(eventName);
+        
+        if (!eventId) {
+          eventId = idGen.next();
+          metaevents.push({ id: eventId, name: eventName });
+          eventMap.set(eventName, eventId);
+        }
+
+        const methodId = idGen.next();
+        const methodName = `ME${opName}`;
+
+        metamethods.push({
+          id: methodId, name: methodName, provenance: 'OWNED', type: 'MODIFY',
+          ownerObjectId: mxpId, ownerEventId: eventId
+        });
+
+        classData.acquiredMethods.push({
+          safeId: idGen.next(),
+          methodId: methodId,
+          methodName: methodName
+        });
+
+        classData.inheritableMethods.push({
+          eventId: eventId,
+          methodId: methodId,
+          methodName: methodName,
+          type: 'MODIFY'
+        });
+      });
+    }
+
     classMap.set(cls.id, classData);
 
     const mappedAttributes = (cls.attributes || []).map((attr: any) => ({
@@ -146,37 +190,17 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
   });
 
   // 2. Process Associations
-  associations.forEach((assoc: any) => {
+  const generalizations = associations.filter((a: any) => a.isGeneralization);
+  const normalDependencies = associations.filter((a: any) => !a.isGeneralization);
+
+  // Process normal dependencies first, so master classes acquire methods 
+  // which can then be inherited down to subclasses
+  normalDependencies.forEach((assoc: any) => {
     const master = classMap.get(assoc.masterClassId);
     const dependent = classMap.get(assoc.dependentClassId);
 
     if (!master || !dependent) return;
 
-    if (assoc.isGeneralization) {
-      // Inheritance
-      const inhId = idGen.next();
-      metainheritances.push({
-        id: inhId,
-        supertypeId: master.mxpId,
-        subtypeId: dependent.mxpId
-      });
-
-      // Inherit the MEcr and MEend from supertype to subtype
-      const inhCrMethodId = idGen.next();
-      const inhEndMethodId = idGen.next();
-
-      metamethods.push({
-        id: inhCrMethodId, name: `MEcr${master.name}`, provenance: 'INHERITED', type: 'CREATE',
-        ownerObjectId: dependent.mxpId, ownerEventId: master.crEventId,
-        viaMethod: master.crMethodId, viaInheritance: inhId
-      });
-      metamethods.push({
-        id: inhEndMethodId, name: `MEend${master.name}`, provenance: 'INHERITED', type: 'END',
-        ownerObjectId: dependent.mxpId, ownerEventId: master.endEventId,
-        viaMethod: master.endMethodId, viaInheritance: inhId
-      });
-    } else {
-      // Normal Dependency
       const depId = idGen.next();
       const dependencyType = mapMultiplicity(assoc.multiplicity || '0..*');
       
@@ -207,6 +231,12 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
         methodId: acqCrMethodId,
         methodName: `MEcr${dependent.name}`
       });
+      master.inheritableMethods.push({
+        eventId: dependent.crEventId,
+        methodId: acqCrMethodId,
+        methodName: `MEcr${dependent.name}`,
+        type: 'MODIFY'
+      });
 
       metamethods.push({
         id: acqEndMethodId, name: `MEend${dependent.name}`, provenance: 'ACQUIRED', type: 'MODIFY',
@@ -218,8 +248,101 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
         methodId: acqEndMethodId,
         methodName: `MEend${dependent.name}`
       });
-    }
+      master.inheritableMethods.push({
+        eventId: dependent.endEventId,
+        methodId: acqEndMethodId,
+        methodName: `MEend${dependent.name}`,
+        type: 'MODIFY'
+      });
   });
+
+  // Process generalizations in topological order to support multi-level inheritance
+  let changed = true;
+  const processedAssocs = new Set<string>();
+  while (changed) {
+    changed = false;
+    for (const assoc of generalizations) {
+      if (processedAssocs.has(assoc.id)) continue;
+
+      // Wait until the master class has no unprocessed incoming generalizations
+      const masterHasPendingIncoming = generalizations.some(
+        (a: any) => a.dependentClassId === assoc.masterClassId && !processedAssocs.has(a.id)
+      );
+
+      if (!masterHasPendingIncoming) {
+        processedAssocs.add(assoc.id);
+        changed = true;
+
+        const master = classMap.get(assoc.masterClassId);
+        const dependent = classMap.get(assoc.dependentClassId);
+
+        if (!master || !dependent) continue;
+
+        const inhId = idGen.next();
+        metainheritances.push({
+          id: inhId,
+          supertypeId: master.mxpId,
+          subtypeId: dependent.mxpId
+        });
+
+        // Inherit the MEcr and MEend from supertype to subtype
+        const inhCrMethodId = idGen.next();
+        const inhEndMethodId = idGen.next();
+
+        metamethods.push({
+          id: inhCrMethodId, name: `MEcr${master.name}`, provenance: 'INHERITED', type: 'CREATE',
+          ownerObjectId: dependent.mxpId, ownerEventId: master.crEventId,
+          viaMethod: master.crMethodId, viaInheritance: inhId
+        });
+        metamethods.push({
+          id: inhEndMethodId, name: `MEend${master.name}`, provenance: 'INHERITED', type: 'END',
+          ownerObjectId: dependent.mxpId, ownerEventId: master.endEventId,
+          viaMethod: master.endMethodId, viaInheritance: inhId
+        });
+
+        dependent.inheritableMethods.push({
+          eventId: master.crEventId,
+          methodId: inhCrMethodId,
+          methodName: `MEcr${master.name}`,
+          type: 'CREATE'
+        });
+        dependent.inheritableMethods.push({
+          eventId: master.endEventId,
+          methodId: inhEndMethodId,
+          methodName: `MEend${master.name}`,
+          type: 'END'
+        });
+
+        // Inherit all other methods (user-defined and acquired)
+        if (master.inheritableMethods) {
+          master.inheritableMethods.forEach((udm: any) => {
+            const inhMethodId = idGen.next();
+            metamethods.push({
+              id: inhMethodId, name: udm.methodName, provenance: 'INHERITED', type: udm.type,
+              ownerObjectId: dependent.mxpId, ownerEventId: udm.eventId,
+              viaMethod: udm.methodId, viaInheritance: inhId
+            });
+            
+            if (udm.type === 'MODIFY') {
+              dependent.acquiredMethods.push({
+                safeId: idGen.next(),
+                methodId: inhMethodId,
+                methodName: udm.methodName
+              });
+            }
+
+            // Allow subclass to pass down this method to its own subclasses
+            dependent.inheritableMethods.push({
+              eventId: udm.eventId,
+              methodId: inhMethodId,
+              methodName: udm.methodName,
+              type: udm.type
+            });
+          });
+        }
+      }
+    }
+  }
 
   return {
     timestamp: Date.now(),

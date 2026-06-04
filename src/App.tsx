@@ -8,11 +8,13 @@ import { mapUmlToMerode } from './mappers/umlToMerode';
 import UMLDiagram from "./components/diagrammElements/UMLDiagram";
 import MERODEDiagram from "./components/diagrammElements/MerodeDiagram";
 import { type XmiJsonData } from './types/metamodels/xmiJson';
-import { type UMLIR } from './types/metamodels/uml';
+import { type UMLIR, type UMLAssociation } from './types/metamodels/uml';
 import { type MerodeIR } from "./types/metamodels/merode";
 import { 
   type Proposal,
   type BinaryAssociationProposal, 
+  type UnaryAssociationProposal,
+  type NAryAssociationProposal,
 } from './types/proposals';
 import { 
   type Decision, 
@@ -43,27 +45,11 @@ function App() {
     proposalsRef.current = proposals;
   }, [proposals]);
 
-  const reMapModels = useCallback(async () => {
+  const reMapModels = useCallback((currentProposals: Proposal[] = proposalsRef.current) => {
     if (umlIR) {
-      const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, false, proposalsRef.current);
+      const { merodeIR: newMerodeIR, proposals: newProposals } = mapUmlToMerode(umlIR, decisions, currentProposals);
       setMerodeIR(newMerodeIR);
-      
-      // Save and apply ONLY the manually changed or AI-generated class name of the proposals
-      setProposals(prevProposals => {
-        return newProposals.map(newProp => {
-          const existingProp = prevProposals.find(p => p.id === newProp.id);
-          if (existingProp) {
-            return {
-              ...newProp,
-              ...('proposedClassName' in existingProp && { proposedClassName: (existingProp as any).proposedClassName })
-            } as Proposal;
-          }
-          return newProp;
-        });
-      });
-      console.log("Re-mapped MERODE IR:", newMerodeIR);
-      console.log("Generated Proposals based on current decisions:", newProposals);
-      console.log("Current decisions:", Array.from(decisions.entries()));
+      setProposals(newProposals);
     }
   }, [umlIR, decisions]); // Depend on umlIR and decisions
 
@@ -131,19 +117,19 @@ function App() {
    * @param value 
    */
   const handleProposalChange = (proposalId: string, key: string, value: any) => {
-    setProposals(prevProposals =>
-      prevProposals.map(p => {
-        if (p.id === proposalId) {
-          const updated = { ...p, [key]: value } as any;
-          return updated as Proposal;
-        }
-        return p;
-      })
-    );
+    const updatedProposals = proposalsRef.current.map(p => {
+      if (p.id === proposalId) {
+        return { ...p, [key]: value } as Proposal;
+      }
+      return p;
+    });
+    
+    // Instantly map models so real-time modifications apply in the MERODE view
+    reMapModels(updatedProposals);
   };
 
   const handleSwapMasterDependent = (proposalId: string) => {
-    setProposals(prev => prev.map(p => {
+    const updatedProposals = proposalsRef.current.map(p => {
       if (p.id === proposalId && 'proposedMasterClassId' in p) {
         const prop = p as BinaryAssociationProposal;
         return {
@@ -155,7 +141,9 @@ function App() {
         };
       }
       return p;
-    }));
+    });
+    
+    reMapModels(updatedProposals);
   }
 
   const handleAcceptProposal = (proposal: Proposal) => {
@@ -181,10 +169,49 @@ function App() {
       setAiLoadingText("Initializing AI...");
       aiService.setProgressCallback((text) => setAiLoadingText(text));
       try {
-        // Rufe den Mapper erneut auf, aber diesmal mit useAi = true
-        const { merodeIR: newMerodeIR, proposals: newProposals } = await mapUmlToMerode(umlIR, decisions, true, proposalsRef.current);
-        setMerodeIR(newMerodeIR);
-        setProposals(newProposals);
+        await aiService.initialize();
+        
+        const updatedProposals = [...proposalsRef.current];
+        let hasChanges = false;
+
+        for (let i = 0; i < updatedProposals.length; i++) {
+          const p = updatedProposals[i];
+          
+          if (decisions.has(p.id)) continue;
+          
+          if ('proposedClassName' in p && (!p.proposedClassName || p.proposedClassName.trim() === '')) {
+            let classNames: string[] = [];
+            let roles: string[] = [];
+            
+            if ('proposedMasterClassName' in p && 'proposedDependentClassName' in p) {
+              const bp = p as BinaryAssociationProposal;
+              if (!bp.proposedExistenceDependency) {
+                classNames = [bp.proposedMasterClassName, bp.proposedDependentClassName];
+                roles = [bp.proposedRole1Name || '', bp.proposedRole2Name || ''];
+              }
+            } else if ('proposedRoleNames' in p) {
+              const np = p as NAryAssociationProposal;
+              const assoc = umlIR.model.packagedElement.find(el => el.id === np.id) as UMLAssociation;
+              classNames = assoc ? assoc.ends.map(e => umlIR.model.packagedElement.find(c => c.id === e.targetClassId)?.name || 'Entity') : [];
+              roles = np.proposedRoleNames;
+            } else if ('proposedRole1Name' in p && !('proposedExistenceDependency' in p)) {
+              const up = p as UnaryAssociationProposal;
+              const assoc = umlIR.model.packagedElement.find(el => el.id === up.id) as UMLAssociation;
+              const name = assoc ? (umlIR.model.packagedElement.find(c => c.id === assoc.ends[0].targetClassId)?.name || 'Entity') : 'Entity';
+              classNames = [name, name];
+              roles = [up.proposedRole1Name || '', up.proposedRole2Name || ''];
+            }
+
+            if (classNames.length > 0) {
+              setAiLoadingText(`Generating name for ${classNames.join(', ')}...`);
+              const generatedName = await aiService.generateIntermediateClassName(classNames, roles);
+              updatedProposals[i] = { ...p, proposedClassName: generatedName } as any;
+              hasChanges = true;
+            }
+          }
+        }
+
+        if (hasChanges) reMapModels(updatedProposals);
       } catch (err) {
         console.error("AI Generation failed:", err);
       } finally {
