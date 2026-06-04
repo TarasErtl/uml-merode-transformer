@@ -1,5 +1,5 @@
 import React from 'react';
-import { Handle, Position, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getBezierPath } from '@xyflow/react';
+import { Handle, Position, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from '@xyflow/react';
 
 /**
  * Shared component to render invisible handles for all 4 sides.

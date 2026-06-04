@@ -190,8 +190,8 @@ export const mapMerodeToMxpData = (ir: MerodeIR) => {
   });
 
   // 2. Process Associations
-  const generalizations = associations.filter((a: any) => a.isGeneralization);
-  const normalDependencies = associations.filter((a: any) => !a.isGeneralization);
+  const generalizations: any[] = associations.filter((a: any) => a.isGeneralization);
+  const normalDependencies: any[] = associations.filter((a: any) => !a.isGeneralization);
 
   // Process normal dependencies bottom-up (topological sort), so master classes acquire methods
   // from their dependents (which bubble up the chain), which can then be inherited down to subclasses

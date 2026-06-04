@@ -1,3 +1,4 @@
+// @ts-ignore
 import { CreateMLCEngine, MLCEngine, type InitProgressCallback } from "@mlc-ai/web-llm";
 
 export class AIService {
@@ -25,7 +26,7 @@ export class AIService {
     this.isInitializing = true;
     try {
       this.engine = await CreateMLCEngine(modelId, { 
-        initProgressCallback: (progress) => {
+        initProgressCallback: (progress: any) => {
           if (this.progressCallback) {
             this.progressCallback(progress.text);
           }

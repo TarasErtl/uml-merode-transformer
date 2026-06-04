@@ -79,7 +79,7 @@ const buildUmlElements = (umlIR: UMLIR) => {
 
   // Extract specific element types from the Intermediate Representation
   const classes = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Class' || el.type === 'uml:AssociationClass') as UMLClass[];
-  const associations = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Association' || el.type === 'uml:AssociationClass') as UMLAssociation[];
+  const associations = umlIR.model.packagedElement.filter((el) => el.type === 'uml:Association' || el.type === 'uml:AssociationClass') as (UMLAssociation | UMLAssociationClass)[];
 
   // Create visual nodes for every UML class
   classes.forEach((cls) => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { type EventsProposal, type BusinessEventItem } from '../../types/proposals';
 
 interface EventsProposalCardProps {

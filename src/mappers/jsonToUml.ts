@@ -8,7 +8,6 @@ import {
   type UMLOperation,
   UMLLowerBound, 
   UMLUpperBound,
-  type UMLPackagedElement
 } from '../types/metamodels/uml';
 import {
   type XmiJsonData,
@@ -123,7 +122,7 @@ const processAssociations = (
 
         const targetClassId = typeof attr.type === 'string' 
           ? attr.type 
-          : (attr.type["xmi:id"] || attr.type.href?.split('#').pop() || "unknown");
+          : ((attr.type as any)["xmi:id"] || (attr.type as any).href?.split('#').pop() || "unknown");
 
         // Map the target class to this association
         if (!classAssocMap[targetClassId]) {
@@ -198,10 +197,10 @@ const processClasses = (
           if (typeof attr.type === "string") {
             attrType = attr.type;
           } else if (attr.type && typeof attr.type === "object") {
-            if (attr.type.href) {
-              attrType = attr.type.href.split('#').pop() || "String";
-            } else if (attr.type["xmi:type"]) {
-              attrType = attr.type["xmi:type"].replace("uml:", "");
+            if ((attr.type as any).href) {
+              attrType = (attr.type as any).href.split('#').pop() || "String";
+            } else if ((attr.type as any)["xmi:type"]) {
+              attrType = (attr.type as any)["xmi:type"].replace("uml:", "");
             }
           }
           return {
@@ -323,10 +322,10 @@ const processAssociationClasses = (
           if (typeof attr.type === "string") {
             attrType = attr.type;
           } else if (attr.type && typeof attr.type === "object") {
-            if (attr.type.href) {
-              attrType = attr.type.href.split('#').pop() || "String";
-            } else if (attr.type["xmi:type"]) {
-              attrType = attr.type["xmi:type"].replace("uml:", "");
+            if ((attr.type as any).href) {
+              attrType = (attr.type as any).href.split('#').pop() || "String";
+            } else if ((attr.type as any)["xmi:type"]) {
+              attrType = (attr.type as any)["xmi:type"].replace("uml:", "");
             }
           }
           return {
@@ -359,7 +358,7 @@ const processAssociationClasses = (
 
         const targetClassId = typeof attr.type === 'string' 
           ? attr.type 
-          : (attr.type["xmi:id"] || attr.type.href?.split('#').pop() || "unknown");
+          : ((attr.type as any)["xmi:id"] || (attr.type as any).href?.split('#').pop() || "unknown");
 
         // Map the target class to this association
         if (!classAssocMap[targetClassId]) {
