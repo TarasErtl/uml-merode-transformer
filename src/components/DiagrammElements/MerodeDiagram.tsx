@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
-  Node,
-  Edge,
+  type Node,
+  type Edge,
   Position,
   useNodesState,
   useEdgesState,

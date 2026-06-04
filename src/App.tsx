@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import FilePicker from './components/filePicker';
+import FilePicker from './components/FilePicker';
 import { parseXmlToAny } from './utils/xmiParser';
 import { logger } from './utils/logger';
-import ProposalPanel from './components/proposalPanel';
+import ProposalPanel from './components/ProposalPanel';
 import { mapXmiToIR } from './mappers/jsonToUml'; // Corrected import path
 import { mapUmlToMerode } from './mappers/umlToMerode';
-import UMLDiagram from "./components/diagrammElements/UMLDiagram";
-import MERODEDiagram from "./components/diagrammElements/MerodeDiagram";
+import UMLDiagram from "./components/DiagrammElements/UMLDiagram";
+import MERODEDiagram from "./components/DiagrammElements/MerodeDiagram";
 import { type XmiJsonData } from './types/metamodels/xmiJson';
 import { type UMLIR, type UMLAssociation } from './types/metamodels/uml';
 import { type MerodeIR } from "./types/metamodels/merode";
@@ -179,7 +179,8 @@ function App() {
           
           if (decisions.has(p.id)) continue;
           
-          if ('proposedClassName' in p && (!p.proposedClassName || p.proposedClassName.trim() === '')) {
+          const propClassName = (p as any).proposedClassName;
+          if ('proposedClassName' in p && (!propClassName || (typeof propClassName === 'string' && propClassName.trim() === ''))) {
             let classNames: string[] = [];
             let roles: string[] = [];
             

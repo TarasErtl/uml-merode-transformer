@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import {
   ReactFlow,
   Background,
-  Node,
-  Edge,
+  type Node,
+  type Edge,
   Position,
   useNodesState,
   useEdgesState,
@@ -11,7 +11,7 @@ import {
 } from '@xyflow/react';
 import dagre from 'dagre';
 import '@xyflow/react/dist/style.css';
-import { UMLIR, UMLClass, UMLAssociation, UMLRegularAssociationEnd, UMLAssociationClass } from '../../types/metamodels/uml';
+import { type UMLIR, type UMLClass, type UMLAssociation, type UMLRegularAssociationEnd, type UMLAssociationClass } from '../../types/metamodels/uml';
 import { nodeTypes, edgeTypes } from './UMLElements';
 
 /**
