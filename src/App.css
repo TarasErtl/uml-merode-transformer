@@ -137,3 +137,15 @@
 .app-proposals-container { flex-grow: 1; overflow: hidden; transition: all 0.3s; }
 .app-proposals-container.open { opacity: 1; }
 .app-proposals-container.closed { opacity: 0; display: none; }
+.app-ai-btn-wrapper {
+  display: flex;
+  flex-direction: row;
+  margin-top: 20px;
+  width: 100%;
+}
+
+/* Animation for the AI button */
+/* The button should not pulse when it's being clicked/active */
+.ai-pulse-animation.active {
+  animation: none;
+}

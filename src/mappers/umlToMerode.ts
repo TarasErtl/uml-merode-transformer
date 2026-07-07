@@ -115,7 +115,7 @@ const mapBinaryAssociation = (merodeIR: Map<string, MerodeBaseElement>, umlAssoc
 
   if (isExistenceDependent) {
     // Case 1: Existence dependency is assumed or decided. Create a direct Master-Dependent association.
-    const dependentEnd: UMLRegularAssociationEnd = associationEnds.find(end => end.targetClassId === masterClassId) || end2;
+    const dependentEnd: UMLRegularAssociationEnd = associationEnds.find(end => end.targetClassId ===  dependentClassId) || end2;
     createMerodeAssociation(
       merodeIR,
       umlAssoc.id,
@@ -273,7 +273,7 @@ export const mapUmlToMerode = (umlIR: UMLIR, decisions: Map<string, Decision>, e
       id: 'global-events-proposal',
       type: 'eventsProposal',
       events: allEvents,
-      message: 'Please select which events (operations) should remain as business events in the Merode model, by clicking on them.'
+      message: 'Please select which events (operations) should remain as business events in the Merode model, by clicking on them in the list below'
     };
     newProposals.set(globalEventsProposal.id, globalEventsProposal);
   }

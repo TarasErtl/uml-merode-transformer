@@ -303,86 +303,85 @@ function App() {
           <div className="app-sidebar-inner">
             {/* Control Panel */}
             <div className={`app-control-panel ${showProposals ? 'open' : 'closed'}`}>
-                {umlIR && (
-                  <>
-                    <button 
-                      onClick={() => setViewMode('uml')} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'uml' ? 'active' : 'inactive'}`}
-                      title="Show UML Diagram"
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">U</text>
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => setViewMode('split')} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'split' ? 'active' : 'inactive'}`}
-                      title="Show Split View"
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="12" y1="3" x2="12" y2="21"></line>
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => setViewMode('merode')} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${viewMode === 'merode' ? 'active' : 'inactive'}`}
-                      title="Show MERODE Diagram"
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">M</text>
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => setLayoutResetCount(prev => prev + 1)} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
-                      title="Rearrange Diagram Layout"
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="8" y="3" width="8" height="6" rx="1"></rect>
-                        <rect x="2" y="15" width="8" height="6" rx="1"></rect>
-                        <rect x="14" y="15" width="8" height="6" rx="1"></rect>
-                        <path d="M12 9v3"></path>
-                        <path d="M18 15v-3H6v3"></path>
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={() => merodeIR && exportToMxp(merodeIR)} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
-                      title="Export to MXP"
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                    </button>
-                    <button 
-                      onClick={handleAiModelGeneration} 
-                      className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} ${isAILoading ? 'active' : 'inactive'}`}
-                      title="Generate Names with AI"
-                      disabled={isAILoading}
-                    >
-                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                        <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">AI</text>
-                      </svg>
-                    </button>
-                  </>
-                )}
-              <button 
-                onClick={() => setShowProposals(!showProposals)} 
-                className={`app-control-btn ${showProposals ? 'expanded' : 'collapsed'} inactive`}
-                title={showProposals ? "Hide Proposals" : "Show Proposals"}
-              >
-                {showProposals ? (
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              {umlIR && (
+                showProposals ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
+                      <div style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+                        <button onClick={() => setViewMode('uml')} className={`app-control-btn expanded ${viewMode === 'uml' ? 'active' : 'inactive'}`} title="Show UML Diagram" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">U</text>
+                          </svg>
+                        </button>
+                        <button onClick={() => setViewMode('split')} className={`app-control-btn expanded ${viewMode === 'split' ? 'active' : 'inactive'}`} title="Show Split View" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="12" y1="3" x2="12" y2="21"></line>
+                          </svg>
+                        </button>
+                        <button onClick={() => setViewMode('merode')} className={`app-control-btn expanded ${viewMode === 'merode' ? 'active' : 'inactive'}`} title="Show MERODE Diagram" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <text x="12" y="16" fontSize="10" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none" fontFamily="sans-serif">M</text>
+                          </svg>
+                        </button>
+                        <button onClick={() => setLayoutResetCount(prev => prev + 1)} className="app-control-btn expanded inactive" title="Rearrange Diagram Layout" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="8" y="3" width="8" height="6" rx="1"></rect>
+                            <rect x="2" y="15" width="8" height="6" rx="1"></rect>
+                            <rect x="14" y="15" width="8" height="6" rx="1"></rect>
+                            <path d="M12 9v3"></path>
+                            <path d="M18 15v-3H6v3"></path>
+                          </svg>
+                        </button>
+                        <button onClick={() => merodeIR && exportToMxp(merodeIR)} className="app-control-btn expanded inactive" title="Export to MXP" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                        </button>
+                        <button onClick={() => setShowProposals(false)} className="app-control-btn expanded inactive" title="Hide Proposals" style={{ flex: 1 }}>
+                          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
+                      </div>
+                      <div className="app-ai-btn-wrapper">
+                      <button
+                        onClick={handleAiModelGeneration}
+                        title="Generate Names with AI"
+                        className={`app-control-btn expanded ${isAILoading ? 'active' : 'inactive'} ai-pulse-animation`}
+                        disabled={isAILoading}
+                      >
+                        <svg width="100%" height="36" viewBox="0 0 250 34" preserveAspectRatio="xMidYMid meet" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <defs>
+                            <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#818cf8" stopOpacity="1" />
+                              <stop offset="50%" stopColor="#f4f4f5" stopOpacity="1" />
+                              <stop offset="100%" stopColor="#818cf8" stopOpacity="1" />
+                              {!isAILoading && (
+                                <>
+                                  <animate attributeName="x1" from="-100%" to="100%" dur="2s" repeatCount="indefinite" />
+                                  <animate attributeName="x2" from="0%" to="200%" dur="2s" repeatCount="indefinite" />
+                                </>
+                              )}
+                            </linearGradient>
+                          </defs>
+                          <rect x="1" y="1" width="248" height="32" rx="4" ry="4" className="ai-btn-rect" style={{ fill: 'none', strokeWidth: 2, stroke: isAILoading ? 'currentColor' : 'url(#wave-gradient)' }} />
+                          <text x="50%" y="21" textAnchor="middle" style={{ fill: 'currentColor', stroke: 'none', fontSize: '11px', fontWeight: 'bold', fontFamily: 'inherit' }}>Generate AI Names for proposed Classes</text>
+                        </svg>
+                      </button>
+                      </div>
+                    </div>
                 ) : (
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                )}
-              </button>
+                  <button 
+                    onClick={() => setShowProposals(true)} 
+                    className="app-control-btn collapsed inactive"
+                    title="Show Proposals"
+                  >
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                  </button>
+                )
+              )}
             </div>
 
             {/* Proposals Panel - only render when shown */}

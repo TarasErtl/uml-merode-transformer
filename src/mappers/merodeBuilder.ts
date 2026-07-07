@@ -45,12 +45,25 @@ export const createIntermediateClass = (merodeIR: Map<string, MerodeBaseElement>
 
   //Create the associations between the new intermediate class and the original classes
   for (let i = 0; i < ends.length; i++) {
+    let multiplicity: MerodeMultiplicity;
+
+    if (ends.length === 2) {
+      // For a binary association, the multiplicity of the new association from an original class
+      // to the intermediate class is determined by the multiplicity of the *other* end of the original UML association.
+      const otherEnd = ends.find(end => end !== ends[i])!;
+      multiplicity = mapToMerodeMultiplicity(otherEnd.lowerBound, otherEnd.upperBound);
+    } else {
+      // For n-ary associations (n > 2), the dependency from an original class to the intermediate
+      // class is always considered 'optional many' (0..*).
+      multiplicity = MerodeMultiplicity.ZeroToMany;
+    }
+
     createMerodeAssociation(merodeIR
                           , `${umlAssoc.id}_assoc${i + 1}`
                           , ''
                           , ends[i].targetClassId
                           , classId
-                          , mapToMerodeMultiplicity(ends[i].lowerBound, ends[i].upperBound)
+                          , multiplicity
                           , assocNames[i]);
   }
 

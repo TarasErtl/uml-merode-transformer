@@ -31,7 +31,7 @@ const EventsProposalCard = ({ proposal, onProposalChange, onAcceptProposal, onHo
             onClick={() => handleEventChange(ev.operationId, !ev.isBusinessEvent)} // Make the entire item clickable
           >
             <span className={`event-status-indicator ${ev.isBusinessEvent ? 'accepted' : 'rejected'}`} title={ev.isBusinessEvent ? "Accepted" : "Rejected"} />
-            <label className="proposal-card-label event-label"> {/* Removed htmlFor as checkbox is removed */}
+            <label className="proposal-card-label event-label"> {}
               <span className="event-class-name">
                 Class: {ev.className}
               </span>
