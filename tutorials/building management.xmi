@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uml:Model xmi:version="2.1" xmlns:xmi="http://schema.omg.org/spec/XMI/2.1" xmlns:uml="http://www.eclipse.org/uml2/3.0.0/UML" xmi:id="_BRkDUGAOEfG3NISOUGoiKw" name="building management">
+  <eAnnotations xmi:id="_BRkDUWAOEfG3NISOUGoiKw" source="Objing">
+    <contents xmi:type="uml:Property" xmi:id="_BRkDUmAOEfG3NISOUGoiKw" name="exporterVersion">
+      <defaultValue xmi:type="uml:LiteralString" xmi:id="_BRkDU2AOEfG3NISOUGoiKw" value="3.0.0"/>
+    </contents>
+  </eAnnotations>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDVGAOEfG3NISOUGoiKw" name="WebPortal">
+    <ownedAttribute xmi:id="_BRkDVWAOEfG3NISOUGoiKw" name="username" visibility="public" type="_BRkDYWAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDXGAOEfG3NISOUGoiKw"/>
+    <ownedAttribute xmi:id="_BRkDVmAOEfG3NISOUGoiKw" name="id" visibility="public" type="_BRkDb2AOEfG3NISOUGoiKw" isUnique="false" association="_BRkDX2AOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDV2AOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDWGAOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDWWAOEfG3NISOUGoiKw" name="VersionNumber" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDWmAOEfG3NISOUGoiKw" name="url" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedOperation xmi:id="_BRkDW2AOEfG3NISOUGoiKw" name="registerUser" visibility="public"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDXGAOEfG3NISOUGoiKw" memberEnd="_BRkDVWAOEfG3NISOUGoiKw _BRkDXWAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDXWAOEfG3NISOUGoiKw" visibility="public" type="_BRkDVGAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDXGAOEfG3NISOUGoiKw">
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDXmAOEfG3NISOUGoiKw"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDX2AOEfG3NISOUGoiKw" memberEnd="_BRkDVmAOEfG3NISOUGoiKw _BRkDYGAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDYGAOEfG3NISOUGoiKw" visibility="public" type="_BRkDVGAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDX2AOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDYWAOEfG3NISOUGoiKw" name="User">
+    <ownedAttribute xmi:id="_BRkDYmAOEfG3NISOUGoiKw" name="author" visibility="public" type="_BRkDe2AOEfG3NISOUGoiKw" isUnique="false" association="_BRkDa2AOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDY2AOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDZGAOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDZWAOEfG3NISOUGoiKw" name="owner" visibility="public" type="_BRkDe2AOEfG3NISOUGoiKw" isUnique="false" association="_BRkDbWAOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDZmAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDZ2AOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDaGAOEfG3NISOUGoiKw" name="username" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDaWAOEfG3NISOUGoiKw" name="password" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDamAOEfG3NISOUGoiKw" name="email" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDa2AOEfG3NISOUGoiKw" memberEnd="_BRkDYmAOEfG3NISOUGoiKw _BRkDbGAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDbGAOEfG3NISOUGoiKw" visibility="public" type="_BRkDYWAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDa2AOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDbWAOEfG3NISOUGoiKw" memberEnd="_BRkDZWAOEfG3NISOUGoiKw _BRkDbmAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDbmAOEfG3NISOUGoiKw" visibility="public" type="_BRkDYWAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDbWAOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDb2AOEfG3NISOUGoiKw" name="Entry">
+    <ownedAttribute xmi:id="_BRkDcGAOEfG3NISOUGoiKw" name="name" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDcWAOEfG3NISOUGoiKw" name="public" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Boolean"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDcmAOEfG3NISOUGoiKw" name="EntryGroup">
+    <ownedAttribute xmi:id="_BRkDc2AOEfG3NISOUGoiKw" visibility="public" type="_BRkDb2AOEfG3NISOUGoiKw" isUnique="false" aggregation="composite" association="_BRkDdmAOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDdGAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDdWAOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDdmAOEfG3NISOUGoiKw" memberEnd="_BRkDc2AOEfG3NISOUGoiKw _BRkDd2AOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDd2AOEfG3NISOUGoiKw" visibility="public" type="_BRkDcmAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDdmAOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDeGAOEfG3NISOUGoiKw" name="Administrator">
+    <generalization xmi:id="_BRkDeWAOEfG3NISOUGoiKw" general="_BRkDYWAOEfG3NISOUGoiKw"/>
+    <ownedAttribute xmi:id="_BRkDemAOEfG3NISOUGoiKw" name="idCardNumber" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDe2AOEfG3NISOUGoiKw" name="Building">
+    <ownedAttribute xmi:id="_BRkDfGAOEfG3NISOUGoiKw" name="profilePicture" visibility="public" type="_BRkDkmAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDhWAOEfG3NISOUGoiKw"/>
+    <ownedAttribute xmi:id="_BRkDfWAOEfG3NISOUGoiKw" visibility="public" type="_BRkDkGAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDh2AOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDfmAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDf2AOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDgGAOEfG3NISOUGoiKw" name="buildingId" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDgWAOEfG3NISOUGoiKw" name="label" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDgmAOEfG3NISOUGoiKw" name="adress" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDg2AOEfG3NISOUGoiKw" name="yearOfConstruction" visibility="public" isUnique="false">
+      <ownedComment xmi:id="_BRkDhGAOEfG3NISOUGoiKw">
+        <body>&lt;Enter note text here></body>
+      </ownedComment>
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#Integer"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDhWAOEfG3NISOUGoiKw" memberEnd="_BRkDfGAOEfG3NISOUGoiKw _BRkDhmAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDhmAOEfG3NISOUGoiKw" visibility="public" type="_BRkDe2AOEfG3NISOUGoiKw" isUnique="false" association="_BRkDhWAOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDh2AOEfG3NISOUGoiKw" memberEnd="_BRkDfWAOEfG3NISOUGoiKw _BRkDiGAOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDiGAOEfG3NISOUGoiKw" visibility="public" type="_BRkDe2AOEfG3NISOUGoiKw" isUnique="false" association="_BRkDh2AOEfG3NISOUGoiKw"/>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDiWAOEfG3NISOUGoiKw" name="TextEntry">
+    <generalization xmi:id="_BRkDimAOEfG3NISOUGoiKw" general="_BRkDb2AOEfG3NISOUGoiKw"/>
+    <ownedAttribute xmi:id="_BRkDi2AOEfG3NISOUGoiKw" name="text" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDjGAOEfG3NISOUGoiKw" name="NumericEntry">
+    <generalization xmi:id="_BRkDjWAOEfG3NISOUGoiKw" general="_BRkDb2AOEfG3NISOUGoiKw"/>
+    <ownedAttribute xmi:id="_BRkDjmAOEfG3NISOUGoiKw" name="value" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/EcorePrimitiveTypes.library.uml#EDouble"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDj2AOEfG3NISOUGoiKw" name="unit" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDkGAOEfG3NISOUGoiKw" name="Comment">
+    <ownedAttribute xmi:id="_BRkDkWAOEfG3NISOUGoiKw" name="text" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDkmAOEfG3NISOUGoiKw" name="Image">
+    <ownedAttribute xmi:id="_BRkDk2AOEfG3NISOUGoiKw" visibility="public" type="_BRkDpmAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDl2AOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDlGAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDlWAOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDlmAOEfG3NISOUGoiKw" name="fileName" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:AssociationClass" xmi:id="_BRkDl2AOEfG3NISOUGoiKw" name="TagAssignment" memberEnd="_BRkDk2AOEfG3NISOUGoiKw _BRkDmWAOEfG3NISOUGoiKw">
+    <ownedAttribute xmi:id="_BRkDmGAOEfG3NISOUGoiKw" name="assignmentDate" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedEnd xmi:id="_BRkDmWAOEfG3NISOUGoiKw" visibility="public" type="_BRkDkmAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDl2AOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDmmAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDm2AOEfG3NISOUGoiKw"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDnGAOEfG3NISOUGoiKw" name="SecurityRole">
+    <ownedAttribute xmi:id="_BRkDnWAOEfG3NISOUGoiKw" visibility="public" type="_BRkDeGAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDomAOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDnmAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDn2AOEfG3NISOUGoiKw"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDoGAOEfG3NISOUGoiKw" name="roleName" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+    <ownedAttribute xmi:id="_BRkDoWAOEfG3NISOUGoiKw" name="description" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Association" xmi:id="_BRkDomAOEfG3NISOUGoiKw" memberEnd="_BRkDnWAOEfG3NISOUGoiKw _BRkDo2AOEfG3NISOUGoiKw">
+    <ownedEnd xmi:id="_BRkDo2AOEfG3NISOUGoiKw" visibility="public" type="_BRkDnGAOEfG3NISOUGoiKw" isUnique="false" association="_BRkDomAOEfG3NISOUGoiKw">
+      <upperValue xmi:type="uml:LiteralUnlimitedNatural" xmi:id="_BRkDpGAOEfG3NISOUGoiKw" value="*"/>
+      <lowerValue xmi:type="uml:LiteralInteger" xmi:id="_BRkDpWAOEfG3NISOUGoiKw"/>
+    </ownedEnd>
+  </packagedElement>
+  <packagedElement xmi:type="uml:Class" xmi:id="_BRkDpmAOEfG3NISOUGoiKw" name="Tag">
+    <ownedAttribute xmi:id="_BRkDp2AOEfG3NISOUGoiKw" name="text" visibility="public" isUnique="false">
+      <type xmi:type="uml:PrimitiveType" href="pathmap://UML_LIBRARIES/UMLPrimitiveTypes.library.uml#String"/>
+    </ownedAttribute>
+  </packagedElement>
+</uml:Model>
